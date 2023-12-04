@@ -21,11 +21,11 @@ This webui is a slightly modified copy of the [official webui](https://github.co
 
 ### 2 - Fine-tuning XTTS Encoder
 
-![image](https://github.com/daswer123/xtts-finetune-webui/assets/22278673/4a07a65c-f807-42b1-8514-6bff73086e31)
+![image](https://github.com/daswer123/xtts-finetune-webui/assets/22278673/897540d9-3a6b-463c-abb8-261c289cc929)
 
 ### 3 - Inference
 
-![image](https://github.com/daswer123/xtts-finetune-webui/assets/22278673/dade10d3-82f3-4458-a647-c82081ad1ff8)
+![image](https://github.com/daswer123/xtts-finetune-webui/assets/22278673/aa05bcd4-8642-4de4-8f2f-bc0f5571af63)
 
 ## Install
 
