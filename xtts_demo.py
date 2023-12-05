@@ -358,14 +358,6 @@ if __name__ == "__main__":
                 step=1,
                 value=args.max_audio_length,
             )
-            max_audio_length = gr.Slider(
-                label="Max permitted audio size in seconds:",
-                minimum=2,
-                maximum=20,
-                step=1,
-                value=args.max_audio_length,
-            )
-
             clear_train_data = gr.Dropdown(
                 label="Clear train data, you will delete selected folder, after optimizing",
                 value="none",
