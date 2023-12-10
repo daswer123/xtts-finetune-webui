@@ -403,7 +403,7 @@ if __name__ == "__main__":
                 clear_gpu_cache()
                 return "Model training done!", config_path, vocab_file, ft_xtts_checkpoint, speaker_wav
 
-            def optimize_model(xtts_checkpoint,out_path,clear_train_data):
+            def optimize_model(xtts_checkpoint,out_path,clear_train_data,speaker_reference):
                 clear_gpu_cache()
 
                 checkpoint_dir = os.path.dirname(xtts_checkpoint)
@@ -435,8 +435,16 @@ if __name__ == "__main__":
 
                 model_path = out_path / "model.pth"
                 ft_xtts_checkpoint = str(model_path)
+
+
+                # Move reference audio to output folder and rename it
+                speaker_reference_path = Path(speaker_reference)
+                speaker_reference_name = "reference.wav"
+                speaker_reference_new_path = out_path / speaker_reference_name
+                shutil.copy(speaker_reference_path, speaker_reference_new_path)
+                speaker_reference = str(speaker_reference_new_path)
  
-                return "Model optimized!",ft_xtts_checkpoint
+                return "Model optimized!",ft_xtts_checkpoint,speaker_reference
 
             def load_params(out_path):
                 path_output = Path(out_path)
@@ -607,9 +615,10 @@ if __name__ == "__main__":
                 inputs=[
                     xtts_checkpoint,
                     out_path,
-                    clear_train_data
+                    clear_train_data,
+                    speaker_reference_audio
                 ],
-                outputs=[progress_train,xtts_checkpoint],
+                outputs=[progress_train,xtts_checkpoint,speaker_reference_audio],
             )
             
             load_btn.click(

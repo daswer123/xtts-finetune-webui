@@ -14,8 +14,6 @@ import torchaudio
 from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
 
 torch.set_num_threads(16)
-
-
 import os
 
 audio_types = (".wav", ".mp3", ".flac")
@@ -63,12 +61,44 @@ def format_audio_list(audio_files, target_language="en", whisper_model = "large-
 
     metadata = {"audio_file": [], "text": [], "speaker_name": []}
 
+    existing_metadata = {'train': None, 'eval': None}
+    train_metadata_path = os.path.join(out_path, "metadata_train.csv")
+    eval_metadata_path = os.path.join(out_path, "metadata_eval.csv")
+
+    if os.path.exists(train_metadata_path):
+        existing_metadata['train'] = pandas.read_csv(train_metadata_path,sep="|")
+        print("Existing training metadata found and loaded.")
+
+    if os.path.exists(eval_metadata_path):
+        existing_metadata['eval'] = pandas.read_csv(eval_metadata_path, sep="|")
+        print("Existing evaluation metadata found and loaded.")
+
     if gradio_progress is not None:
         tqdm_object = gradio_progress.tqdm(audio_files, desc="Formatting...")
     else:
         tqdm_object = tqdm(audio_files)
 
     for audio_path in tqdm_object:
+
+        audio_file_name_without_ext, _ = os.path.splitext(os.path.basename(audio_path))
+        prefix_check = f"wavs/{audio_file_name_without_ext}_"
+  
+        # Check both training and evaluation metadata for an entry that starts with the file name.
+        skip_processing = False
+  
+        for key in ['train', 'eval']:
+            if existing_metadata[key] is not None:
+                mask = existing_metadata[key]['audio_file'].str.startswith(prefix_check)
+  
+                if mask.any():
+                    print(f"Segments from {audio_file_name_without_ext} have been previously processed; skipping...")
+                    skip_processing = True
+                    break
+  
+        # If we found that we've already processed this file before, continue to next iteration.
+        if skip_processing:
+            continue
+  
         wav, sr = torchaudio.load(audio_path)
         # stereo to mono if needed
         if wav.size(0) != 1:
@@ -144,23 +174,45 @@ def format_audio_list(audio_files, target_language="en", whisper_model = "large-
                 metadata["text"].append(sentence)
                 metadata["speaker_name"].append(speaker_name)
 
-    df = pandas.DataFrame(metadata)
-    df = df.sample(frac=1)
-    num_val_samples = int(len(df)*eval_percentage)
+    # df = pandas.DataFrame(metadata)
+    # df = df.sample(frac=1)
+    # num_val_samples = int(len(df)*eval_percentage)
 
-    df_eval = df[:num_val_samples]
-    df_train = df[num_val_samples:]
+    # df_eval = df[:num_val_samples]
+    # df_train = df[num_val_samples:]
 
-    df_train = df_train.sort_values('audio_file')
-    train_metadata_path = os.path.join(out_path, "metadata_train.csv")
-    df_train.to_csv(train_metadata_path, sep="|", index=False)
+    # df_train = df_train.sort_values('audio_file')
+    # train_metadata_path = os.path.join(out_path, "metadata_train.csv")
+    # df_train.to_csv(train_metadata_path, sep="|", index=False)
 
-    eval_metadata_path = os.path.join(out_path, "metadata_eval.csv")
-    df_eval = df_eval.sort_values('audio_file')
-    df_eval.to_csv(eval_metadata_path, sep="|", index=False)
+    # eval_metadata_path = os.path.join(out_path, "metadata_eval.csv")
+    # df_eval = df_eval.sort_values('audio_file')
+    # df_eval.to_csv(eval_metadata_path, sep="|", index=False)
 
-    # deallocate VRAM and RAM
-    del asr_model, df_train, df_eval, df, metadata
-    gc.collect()
+    # # deallocate VRAM and RAM
+    # del asr_model, df_train, df_eval, df, metadata
+    # gc.collect()
 
+    if os.path.exists(train_metadata_path) and os.path.exists(eval_metadata_path):
+        existing_train_df = existing_metadata['train']
+        existing_eval_df = existing_metadata['eval']
+        audio_total_size = 121
+    else:
+        existing_train_df = pandas.DataFrame(columns=["audio_file", "text", "speaker_name"])
+        existing_eval_df = pandas.DataFrame(columns=["audio_file", "text", "speaker_name"])
+
+    new_data_df = pandas.DataFrame(metadata)
+    
+    combined_train_df = pandas.concat([existing_train_df, new_data_df], ignore_index=True).drop_duplicates().reset_index(drop=True)
+    combined_eval_df  = pandas.concat([existing_eval_df, new_data_df], ignore_index=True).drop_duplicates().reset_index(drop=True)
+    
+    combined_train_df_shuffled = combined_train_df.sample(frac=1)
+    num_val_samples = int(len(combined_train_df_shuffled) * eval_percentage)
+    
+    final_eval_set   = combined_train_df_shuffled[:num_val_samples]
+    final_training_set = combined_train_df_shuffled[num_val_samples:]
+    
+    final_training_set.sort_values('audio_file').to_csv(train_metadata_path, sep='|', index=False)
+    final_eval_set.sort_values('audio_file').to_csv(eval_metadata_path, sep='|', index=False)
+    
     return train_metadata_path, eval_metadata_path, audio_total_size
