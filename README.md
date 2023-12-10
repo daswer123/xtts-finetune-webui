@@ -4,14 +4,24 @@ This webui is a slightly modified copy of the [official webui](https://github.co
 
 ## Key features:
 
+### Data processing
 1. Updated faster-whisper to 0.10.0 with the ability to select a larger-v3 model.
-2. Added the ability to select the base model for XTTS, as well as when you re-training does not need to download the model again.
-3. Added ability to select custom model as base model during training, which will allow finetune already finetune model.
-4. Added possibility to get optimized version of the model for 1 click ( step 2.5, put optimized version in output folder).
-5. Changed output folder to output folder inside the main folder.
-6. Added possibility to customize infer settings during model checking.
-7. If you accidentally restart the interface during one of the steps, you can load data to additional buttons
-8. You can choose whether to delete training folders after you have optimized the model
+2. Changed output folder to output folder inside the main folder.
+3. If there is already a dataset in the output folder and you want to add new data, you can do so by simply adding new audio, what was there will not be processed again and the new data will be automatically added
+  
+### Fine-tuning XTTS Encoder
+1. Added the ability to select the base model for XTTS, as well as when you re-training does not need to download the model again.
+2. Added ability to select custom model as base model during training, which will allow finetune already finetune model.
+3. Added possibility to get optimized version of the model for 1 click ( step 2.5, put optimized version in output folder).
+4. You can choose whether to delete training folders after you have optimized the model
+5. When you optimize the model, the example reference audio is moved to the output folder
+
+### Inference
+1. Added possibility to customize infer settings during model checking.
+
+### Other
+1. If you accidentally restart the interface during one of the steps, you can load data to additional buttons
+
 
 ## Changes in webui
 
