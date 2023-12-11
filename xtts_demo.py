@@ -274,10 +274,6 @@ if __name__ == "__main__":
             progress_data = gr.Label(
                 label="Progress:"
             )
-            logs = gr.Textbox(
-                label="Logs:",
-                interactive=False,
-            )
             # demo.load(read_logs, None, logs, every=1)
 
             prompt_compute_btn = gr.Button(value="Step 1 - Create dataset")
@@ -380,11 +376,6 @@ if __name__ == "__main__":
             train_btn = gr.Button(value="Step 2 - Run the training")
             optimize_model_btn = gr.Button(value="Step 2.5 - Optimize the model")
             
-            logs_tts_train = gr.Textbox(
-                label="Logs:",
-                interactive=False,
-            )
-
             def train_model(custom_model,version,language, train_csv, eval_csv, num_epochs, batch_size, grad_acumm, output_path, max_audio_length):
                 clear_gpu_cache()
                 if not train_csv or not eval_csv:
@@ -429,11 +420,15 @@ if __name__ == "__main__":
                 run_dir = out_path / "run"
                 dataset_dir = out_path / "dataset"
 
-                if run_dir.exists() and dataset_dir.exists():
-                    if clear_train_data == "run" or clear_train_data == "all":
-                      shutil.rmtree(run_dir)
-                    if clear_train_data == "dataset" or clear_train_data == "all":
-                      shutil.rmtree(dataset_dir)
+                try:
+                    if run_dir.exists() and dataset_dir.exists():
+                        if clear_train_data == "run" or clear_train_data == "all":
+                          shutil.rmtree(run_dir)
+                        if clear_train_data == "dataset" or clear_train_data == "all":
+                          shutil.rmtree(dataset_dir)
+                except PermissionError as e:
+                    print("An error occurred while deleting a folder")
+                    print(e)
 
                 clear_gpu_cache()
 
