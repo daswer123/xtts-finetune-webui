@@ -214,5 +214,9 @@ def format_audio_list(audio_files, target_language="en", whisper_model = "large-
     
     final_training_set.sort_values('audio_file').to_csv(train_metadata_path, sep='|', index=False)
     final_eval_set.sort_values('audio_file').to_csv(eval_metadata_path, sep='|', index=False)
+
+    # deallocate VRAM and RAM
+    del asr_model, final_eval_set, final_training_set, new_data_df, existing_metadata
+    gc.collect()
     
     return train_metadata_path, eval_metadata_path, audio_total_size

@@ -282,8 +282,12 @@ if __name__ == "__main__":
 
             prompt_compute_btn = gr.Button(value="Step 1 - Create dataset")
         
-            def preprocess_dataset(audio_path, language, whisper_model, out_path, progress=gr.Progress(track_tqdm=True)):
+            def preprocess_dataset(audio_path, language, whisper_model, out_path,train_csv,eval_csv, progress=gr.Progress(track_tqdm=True)):
                 clear_gpu_cache()
+
+                train_csv = ""
+                eval_csv = ""
+
                 out_path = os.path.join(out_path, "dataset")
                 os.makedirs(out_path, exist_ok=True)
                 if audio_path is None:
@@ -360,7 +364,7 @@ if __name__ == "__main__":
             )
             clear_train_data = gr.Dropdown(
                 label="Clear train data, you will delete selected folder, after optimizing",
-                value="none",
+                value="run",
                 choices=[
                     "none",
                     "run",
@@ -574,6 +578,8 @@ if __name__ == "__main__":
                     lang,
                     whisper_model,
                     out_path,
+                    train_csv,
+                    eval_csv
                 ],
                 outputs=[
                     progress_data,
