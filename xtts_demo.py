@@ -130,47 +130,6 @@ def load_params_tts(out_path,version):
     return "Params for TTS loaded", model_path, config_path, vocab_path
      
 
-
-# define a logger to redirect 
-class Logger:
-    def __init__(self, filename="log.out"):
-        self.log_file = filename
-        self.terminal = sys.stdout
-        self.log = open(self.log_file, "w")
-
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
-
-    def flush(self):
-        self.terminal.flush()
-        self.log.flush()
-
-    def isatty(self):
-        return False
-
-# redirect stdout and stderr to a file
-sys.stdout = Logger()
-sys.stderr = sys.stdout
-
-
-# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-import logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
-# def read_logs():
-#     return ""
-    # sys.stdout.flush()
-    # with open(sys.stdout.log_file, "r") as f:
-    #     return f.read()
-
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
@@ -191,7 +150,7 @@ if __name__ == "__main__":
         "--out_path",
         type=str,
         help="Output path (where data and checkpoints will be saved) Default: output/",
-        default=str(Path.cwd() / "output"),
+        default=str(Path.cwd() / "finetune_models"),
     )
 
     parser.add_argument(
@@ -395,7 +354,7 @@ if __name__ == "__main__":
 
                 ft_xtts_checkpoint = os.path.join(exp_path, "best_model.pth")
                 print("Model training done!")
-                clear_gpu_cache()
+                # clear_gpu_cache()
                 return "Model training done!", config_path, vocab_file, ft_xtts_checkpoint, speaker_wav
 
             def optimize_model(xtts_checkpoint,out_path,clear_train_data,speaker_reference):
@@ -659,7 +618,7 @@ if __name__ == "__main__":
             )
 
     demo.launch(
-        share=True,
+        share=False,
         debug=False,
         server_port=args.port,
         server_name="localhost"
