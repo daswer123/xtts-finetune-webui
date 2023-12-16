@@ -11,6 +11,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 1. Updated faster-whisper to 0.10.0 with the ability to select a larger-v3 model.
 2. Changed output folder to output folder inside the main folder.
 3. If there is already a dataset in the output folder and you want to add new data, you can do so by simply adding new audio, what was there will not be processed again and the new data will be automatically added
+4. Turn on VAD filter
 
 ### Fine-tuning XTTS Encoder
 
