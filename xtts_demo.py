@@ -431,7 +431,7 @@ if __name__ == "__main__":
 
                 clear_gpu_cache()
         
-                return f"Model optimized and saved at {ft_xtts_checkpoint}!", ft_xtts_checkpoint,"speaker_reference"
+                return f"Model optimized and saved at {ft_xtts_checkpoint}!", ft_xtts_checkpoint
 
             def load_params(out_path):
                 path_output = Path(out_path)
@@ -620,7 +620,7 @@ if __name__ == "__main__":
                     out_path,
                     clear_train_data
                 ],
-                outputs=[progress_train,xtts_checkpoint,speaker_reference_audio],
+                outputs=[progress_train,xtts_checkpoint],
             )
             
             load_btn.click(
