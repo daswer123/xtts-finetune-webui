@@ -12,6 +12,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 2. Changed output folder to output folder inside the main folder.
 3. If there is already a dataset in the output folder and you want to add new data, you can do so by simply adding new audio, what was there will not be processed again and the new data will be automatically added
 4. Turn on VAD filter
+5. After the dataset is created, a file is created that specifies the language of the dataset. This file is read before training so that the language always matches. It is convenient when you restart the interface
 
 ### Fine-tuning XTTS Encoder
 
@@ -20,6 +21,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 3. Added possibility to get optimized version of the model for 1 click ( step 2.5, put optimized version in output folder).
 4. You can choose whether to delete training folders after you have optimized the model
 5. When you optimize the model, the example reference audio is moved to the output folder
+6. Checking for correctness of the specified language and dataset language
 
 ### Inference
 
@@ -29,6 +31,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 
 1. If you accidentally restart the interface during one of the steps, you can load data to additional buttons
 2. Removed the display of logs as it was causing problems when restarted
+3. The finished result is copied to the ready folder, these are fully finished files, you can move them anywhere and use them as a standard model
 
 ## Changes in webui
 
