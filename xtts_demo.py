@@ -409,7 +409,7 @@ if __name__ == "__main__":
                 model_path = ready_dir / "unoptimize_model.pth"
 
                 if not model_path.is_file():
-                    return "Unoptimized model not found in ready folder", "", ""
+                    return "Unoptimized model not found in ready folder", ""
             
                 # Load the checkpoint and remove unnecessary parts.
                 checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
