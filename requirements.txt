@@ -1,6 +1,6 @@
 faster_whisper==0.10.0
 gradio==4.9.1
-tts == 0.21.3
+tts == 0.22.0
 
 cutlet
 fugashi[unidic-lite]
