@@ -32,6 +32,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 1. If you accidentally restart the interface during one of the steps, you can load data to additional buttons
 2. Removed the display of logs as it was causing problems when restarted
 3. The finished result is copied to the ready folder, these are fully finished files, you can move them anywhere and use them as a standard model
+4. Added support for finetune Japanese 
 
 ## Changes in webui
 
