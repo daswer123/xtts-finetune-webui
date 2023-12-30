@@ -4,6 +4,9 @@ This webui is a slightly modified copy of the [official webui](https://github.co
 
 If you are looking for an option for normal XTTS use look here [https://github.com/daswer123/xtts-webui](https://github.com/daswer123/xtts-webui)
 
+## TODO
+- [ ] Add the ability to use via console 
+
 ## Key features:
 
 ### Data processing
