@@ -7,6 +7,9 @@ from glob import glob
 
 from tqdm import tqdm
 
+# from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
+from typing import Iterable
+
 # from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
 # Add support for JA train
 from utils.tokenizer import multilingual_cleaners
@@ -15,13 +18,17 @@ import torch
 import torchaudio
 # torch.set_num_threads(1)
 
-
 torch.set_num_threads(16)
 import os
 
 audio_types = (".wav", ".mp3", ".flac")
 
 def find_latest_best_model(folder_path):
+        """Find the latest best model in the folder
+        Args:
+            folder_path: the path to the folder where the models are stored
+        Returns:
+            the path to the latest best model"""
         search_path = os.path.join(folder_path, '**', 'best_model.pth')
         files = glob(search_path, recursive=True)
         latest_file = max(files, key=os.path.getctime, default=None)
@@ -33,6 +40,13 @@ def list_audios(basePath, contains=None):
     return list_files(basePath, validExts=audio_types, contains=contains)
 
 def list_files(basePath, validExts=None, contains=None):
+    """ Generate a list of audio files in a directory
+    Args:
+        basePath: the base path to the directory structure containing the files
+        validExts: optional set of valid extensions for the audio files
+        contains: optional string used to filter results
+    Returns:
+        a generator of audio files"""
     # loop over the directory structure
     for (rootDir, dirNames, filenames) in os.walk(basePath):
         # loop over the filenames in the current directory
@@ -51,7 +65,16 @@ def list_files(basePath, validExts=None, contains=None):
                 audioPath = os.path.join(rootDir, filename)
                 yield audioPath
 
-def format_audio_list(audio_files, target_language="en", whisper_model = "large-v3", out_path=None, buffer=0.2, eval_percentage=0.15, speaker_name="coqui", gradio_progress=None):
+def format_audio_list(
+        audio_files: Iterable,
+        target_language: str = "en",
+        whisper_model: str = "large-v3",
+        out_path=None,
+        buffer=0.2,
+        eval_percentage=0.15,
+        speaker_name: str ="coqui",
+        gradio_progress=None
+    ):
     audio_total_size = 0
     # make sure that ooutput file exists
     os.makedirs(out_path, exist_ok=True)
@@ -74,10 +97,17 @@ def format_audio_list(audio_files, target_language="en", whisper_model = "large-
         print("Existing language matches target language")
 
     # Loading Whisper
-    device = "cuda" if torch.cuda.is_available() else "cpu" 
+    device = "cpu"
+    if torch.cuda.is_available(): device = "cuda" 
+    # Check if Apple mps backend is available
+    # if torch.backends.mps.is_available(): device = "mps"
 
-    print("Loading Whisper Model!")
-    asr_model = WhisperModel(whisper_model, device=device, compute_type="float16")
+    compute_type: str = "default"
+    if device == "cuda":
+        compute_type = "float16"
+
+    print(f"Loading Whisper Model using device: {device}!")
+    asr_model = WhisperModel(whisper_model, device=device, compute_type=compute_type)
 
     metadata = {"audio_file": [], "text": [], "speaker_name": []}
 
@@ -86,7 +116,7 @@ def format_audio_list(audio_files, target_language="en", whisper_model = "large-
     eval_metadata_path = os.path.join(out_path, "metadata_eval.csv")
 
     if os.path.exists(train_metadata_path):
-        existing_metadata['train'] = pandas.read_csv(train_metadata_path,sep="|")
+        existing_metadata['train'] = pandas.read_csv(train_metadata_path, sep="|")
         print("Existing training metadata found and loaded.")
 
     if os.path.exists(eval_metadata_path):
