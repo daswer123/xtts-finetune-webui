@@ -394,9 +394,7 @@ if __name__ == "__main__":
                 # language
                 current_language = None
                 if lang_file_path.exists():
-                    with open(
-                        lang_file_path, "r", encoding="utf-8"
-                    ) as existing_lang_file:
+                    with open(lang_file_path, "r", encoding="utf-8") as existing_lang_file:
                         current_language = existing_lang_file.read().strip()
                         if current_language != language:
                             print(
@@ -546,9 +544,7 @@ if __name__ == "__main__":
                 # language
                 current_language = None
                 if os.path.exists(lang_file_path):
-                    with open(
-                        lang_file_path, "r", encoding="utf-8"
-                    ) as existing_lang_file:
+                    with open(lang_file_path, "r", encoding="utf-8") as existing_lang_file:
                         current_language = existing_lang_file.read().strip()
 
                 clear_gpu_cache()
@@ -564,9 +560,7 @@ if __name__ == "__main__":
         with gr.Tab("3 - Inference"):
             with gr.Row():
                 with gr.Column() as col1:
-                    load_params_tts_btn = gr.Button(
-                        value="Load params for TTS from output folder"
-                    )
+                    load_params_tts_btn = gr.Button(value="Load params for TTS from output folder")
                     xtts_checkpoint = gr.Textbox(
                         label="XTTS checkpoint path:",
                         value="",
@@ -758,6 +752,4 @@ if __name__ == "__main__":
                 ],
             )
 
-    demo.launch(
-        share=False, debug=False, server_port=args.port, server_name="localhost"
-    )
+    demo.launch(share=False, debug=False, server_port=args.port, server_name="localhost")

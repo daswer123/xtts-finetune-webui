@@ -562,21 +562,13 @@ def expand_numbers_multilingual(text, lang="en"):
         else:
             text = re.sub(_dot_number_re, _remove_dots, text)
         try:
-            text = re.sub(
-                _currency_re["GBP"], lambda m: _expand_currency(m, lang, "GBP"), text
-            )
-            text = re.sub(
-                _currency_re["USD"], lambda m: _expand_currency(m, lang, "USD"), text
-            )
-            text = re.sub(
-                _currency_re["EUR"], lambda m: _expand_currency(m, lang, "EUR"), text
-            )
+            text = re.sub(_currency_re["GBP"], lambda m: _expand_currency(m, lang, "GBP"), text)
+            text = re.sub(_currency_re["USD"], lambda m: _expand_currency(m, lang, "USD"), text)
+            text = re.sub(_currency_re["EUR"], lambda m: _expand_currency(m, lang, "EUR"), text)
         except BaseException:
             pass
         if lang != "tr":
-            text = re.sub(
-                _decimal_number_re, lambda m: _expand_decimal_point(m, lang), text
-            )
+            text = re.sub(_decimal_number_re, lambda m: _expand_decimal_point(m, lang), text)
         text = re.sub(_ordinal_re[lang], lambda m: _expand_ordinal(m, lang), text)
         text = re.sub(_number_re, lambda m: _expand_number(m, lang), text)
     return text

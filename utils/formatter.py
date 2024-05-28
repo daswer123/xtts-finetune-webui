@@ -265,12 +265,8 @@ def format_audio_list(
         existing_eval_df = existing_metadata["eval"]
         audio_total_size = 121
     else:
-        existing_train_df = pandas.DataFrame(
-            columns=["audio_file", "text", "speaker_name"]
-        )
-        existing_eval_df = pandas.DataFrame(
-            columns=["audio_file", "text", "speaker_name"]
-        )
+        existing_train_df = pandas.DataFrame(columns=["audio_file", "text", "speaker_name"])
+        existing_eval_df = pandas.DataFrame(columns=["audio_file", "text", "speaker_name"])
 
     new_data_df = pandas.DataFrame(metadata)
 
@@ -291,12 +287,8 @@ def format_audio_list(
     final_eval_set = combined_train_df_shuffled[:num_val_samples]
     final_training_set = combined_train_df_shuffled[num_val_samples:]
 
-    final_training_set.sort_values("audio_file").to_csv(
-        train_metadata_path, sep="|", index=False
-    )
-    final_eval_set.sort_values("audio_file").to_csv(
-        eval_metadata_path, sep="|", index=False
-    )
+    final_training_set.sort_values("audio_file").to_csv(train_metadata_path, sep="|", index=False)
+    final_eval_set.sort_values("audio_file").to_csv(eval_metadata_path, sep="|", index=False)
 
     # deallocate VRAM and RAM
     del asr_model, final_eval_set, final_training_set, new_data_df, existing_metadata

@@ -65,15 +65,11 @@ def train_gpt(
     os.makedirs(CHECKPOINTS_OUT_PATH, exist_ok=True)
 
     # DVAE files
-    DVAE_CHECKPOINT_LINK = (
-        "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/dvae.pth"
-    )
+    DVAE_CHECKPOINT_LINK = "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/dvae.pth"
     MEL_NORM_LINK = "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/mel_stats.pth"
 
     # Set the path to the downloaded files
-    DVAE_CHECKPOINT = os.path.join(
-        CHECKPOINTS_OUT_PATH, os.path.basename(DVAE_CHECKPOINT_LINK)
-    )
+    DVAE_CHECKPOINT = os.path.join(CHECKPOINTS_OUT_PATH, os.path.basename(DVAE_CHECKPOINT_LINK))
     MEL_NORM_FILE = os.path.join(CHECKPOINTS_OUT_PATH, os.path.basename(MEL_NORM_LINK))
 
     # download DVAE files if needed
@@ -86,18 +82,10 @@ def train_gpt(
         )
 
     # Download XTTS v2.0 checkpoint if needed
-    TOKENIZER_FILE_LINK = (
-        f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/vocab.json"
-    )
-    XTTS_CHECKPOINT_LINK = (
-        f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/model.pth"
-    )
-    XTTS_CONFIG_LINK = (
-        f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/config.json"
-    )
-    XTTS_SPEAKER_LINK = (
-        f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/speakers_xtts.pth"
-    )
+    TOKENIZER_FILE_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/vocab.json"
+    XTTS_CHECKPOINT_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/model.pth"
+    XTTS_CONFIG_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/config.json"
+    XTTS_SPEAKER_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/speakers_xtts.pth"
 
     # XTTS transfer learning parameters: You we need to provide the paths of
     # XTTS model checkpoint that you want to do the fine tuning.
