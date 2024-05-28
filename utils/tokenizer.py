@@ -14,7 +14,6 @@ from spacy.lang.es import Spanish
 from spacy.lang.ja import Japanese
 from spacy.lang.zh import Chinese
 from tokenizers import Tokenizer
-
 from TTS.tts.layers.xtts.zh_num2words import TextNorm as zh_num2words
 
 
@@ -174,7 +173,8 @@ _abbreviations = {
     "zh": [
         (re.compile("\\b%s\\." % x[0], re.IGNORECASE), x[1])
         for x in [
-            # Chinese doesn't typically use abbreviations in the same way as Latin-based scripts.
+            # Chinese doesn't typically use abbreviations in the same way as
+            # Latin-based scripts.
         ]
     ],
     "cs": [
@@ -202,7 +202,8 @@ _abbreviations = {
             ("mevr", "mevrouw"),  # Mrs.
             ("dr", "dokter"),  # doctor
             ("jhr", "jonkheer"),  # young lord or nobleman
-            # Dutch uses more abbreviations, but these are the most common ones.
+            # Dutch uses more abbreviations, but these are the most common
+            # ones.
         ]
     ],
     "tr": [
@@ -226,7 +227,8 @@ _abbreviations = {
     "ko": [
         (re.compile("\\b%s\\." % x[0], re.IGNORECASE), x[1])
         for x in [
-            # Korean doesn't typically use abbreviations in the same way as Latin-based scripts.
+            # Korean doesn't typically use abbreviations in the same way as
+            # Latin-based scripts.
         ]
     ],
     "ja": [
@@ -237,9 +239,11 @@ _abbreviations = {
             ("博士", "はかせ"),  # Doctor or PhD
             ("株", "株式会社"),  # Corporation
             ("有", "有限会社"),  # Limited company
-            ("大学", "だいがく"),   # University
-            ("先生", "せんせい"),   # Teacher/Professor/Master
-            ("君", "くん")   # Used at the end of boys' names to express familiarity or affection.
+            ("大学", "だいがく"),  # University
+            ("先生", "せんせい"),  # Teacher/Professor/Master
+            # Used at the end of boys' names to express familiarity or
+            # affection.
+            ("君", "くん"),
         ]
     ],
 }
@@ -448,7 +452,7 @@ _symbols_multilingual = {
             ("$", " ドル "),
             ("£", " ポンド "),
             ("°", " 度"),
-            ]
+        ]
     ],
 }
 
@@ -469,13 +473,14 @@ _ordinal_re = {
     "it": re.compile(r"([0-9]+)(º|°|ª|o|a|i|e)"),
     "pl": re.compile(r"([0-9]+)(º|ª|st|nd|rd|th)"),
     "ar": re.compile(r"([0-9]+)(ون|ين|ث|ر|ى)"),
-    "cs": re.compile(r"([0-9]+)\.(?=\s|$)"),  # In Czech, a dot is often used after the number to indicate ordinals.
+    # In Czech, a dot is often used after the number to indicate ordinals.
+    "cs": re.compile(r"([0-9]+)\.(?=\s|$)"),
     "ru": re.compile(r"([0-9]+)(-й|-я|-е|-ое|-ье|-го)"),
     "nl": re.compile(r"([0-9]+)(de|ste|e)"),
     "tr": re.compile(r"([0-9]+)(\.|inci|nci|uncu|üncü|\.)"),
     "hu": re.compile(r"([0-9]+)(\.|adik|edik|odik|edik|ödik|ödike|ik)"),
     "ko": re.compile(r"([0-9]+)(번째|번|차|째)"),
-    "ja": re.compile(r"([0-9]+)(番|回|つ|目|等|位)")
+    "ja": re.compile(r"([0-9]+)(番|回|つ|目|等|位)"),
 }
 _number_re = re.compile(r"[0-9]+")
 _currency_re = {
@@ -510,7 +515,9 @@ def _expand_decimal_point(m, lang="en"):
 
 def _expand_currency(m, lang="en", currency="USD"):
     amount = float((re.sub(r"[^\d.]", "", m.group(0).replace(",", "."))))
-    full_amount = num2words(amount, to="currency", currency=currency, lang=lang if lang != "cs" else "cz")
+    full_amount = num2words(
+        amount, to="currency", currency=currency, lang=lang if lang != "cs" else "cz"
+    )
 
     and_equivalents = {
         "en": ", ",
@@ -557,7 +564,7 @@ def expand_numbers_multilingual(text, lang="en"):
             text = re.sub(_currency_re["GBP"], lambda m: _expand_currency(m, lang, "GBP"), text)
             text = re.sub(_currency_re["USD"], lambda m: _expand_currency(m, lang, "USD"), text)
             text = re.sub(_currency_re["EUR"], lambda m: _expand_currency(m, lang, "EUR"), text)
-        except:
+        except BaseException:
             pass
         if lang != "tr":
             text = re.sub(_decimal_number_re, lambda m: _expand_decimal_point(m, lang), text)
@@ -597,7 +604,15 @@ def basic_cleaners(text):
 
 def chinese_transliterate(text):
     return "".join(
-        [p[0] for p in pypinyin.pinyin(text, style=pypinyin.Style.TONE3, heteronym=False, neutral_tone_with_five=True)]
+        [
+            p[0]
+            for p in pypinyin.pinyin(
+                text,
+                style=pypinyin.Style.TONE3,
+                heteronym=False,
+                neutral_tone_with_five=True,
+            )
+        ]
     )
 
 
@@ -612,7 +627,9 @@ def korean_transliterate(text):
     return r.translit(text)
 
 
-DEFAULT_VOCAB_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/tokenizer.json")
+DEFAULT_VOCAB_FILE = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../data/tokenizer.json"
+)
 
 
 class VoiceBpeTokenizer:
@@ -654,7 +671,23 @@ class VoiceBpeTokenizer:
             )
 
     def preprocess_text(self, txt, lang):
-        if lang in {"ar", "cs", "de", "en", "es", "fr", "hu", "it", "nl", "pl", "pt", "ru", "tr", "zh", "ko"}:
+        if lang in {
+            "ar",
+            "cs",
+            "de",
+            "en",
+            "es",
+            "fr",
+            "hu",
+            "it",
+            "nl",
+            "pl",
+            "pt",
+            "ru",
+            "tr",
+            "zh",
+            "ko",
+        }:
             txt = multilingual_cleaners(txt, lang)
             if lang == "zh":
                 txt = chinese_transliterate(txt)
@@ -702,15 +735,27 @@ def test_expand_numbers_multilingual():
         ("This is a 1st test", "This is a first test", "en"),
         ("That will be $20 sir.", "That will be twenty dollars sir.", "en"),
         ("That will be 20€ sir.", "That will be twenty euro sir.", "en"),
-        ("That will be 20.15€ sir.", "That will be twenty euro, fifteen cents sir.", "en"),
+        (
+            "That will be 20.15€ sir.",
+            "That will be twenty euro, fifteen cents sir.",
+            "en",
+        ),
         ("That's 100,000.5.", "That's one hundred thousand point five.", "en"),
         # French
         ("En 12,5 secondes.", "En douze virgule cinq secondes.", "fr"),
         ("Il y avait 50 soldats.", "Il y avait cinquante soldats.", "fr"),
         ("Ceci est un 1er test", "Ceci est un premier test", "fr"),
-        ("Cela vous fera $20 monsieur.", "Cela vous fera vingt dollars monsieur.", "fr"),
+        (
+            "Cela vous fera $20 monsieur.",
+            "Cela vous fera vingt dollars monsieur.",
+            "fr",
+        ),
         ("Cela vous fera 20€ monsieur.", "Cela vous fera vingt euros monsieur.", "fr"),
-        ("Cela vous fera 20,15€ monsieur.", "Cela vous fera vingt euros et quinze centimes monsieur.", "fr"),
+        (
+            "Cela vous fera 20,15€ monsieur.",
+            "Cela vous fera vingt euros et quinze centimes monsieur.",
+            "fr",
+        ),
         ("Ce sera 100.000,5.", "Ce sera cent mille virgule cinq.", "fr"),
         # German
         ("In 12,5 Sekunden.", "In zwölf Komma fünf Sekunden.", "de"),
@@ -718,21 +763,33 @@ def test_expand_numbers_multilingual():
         ("Dies ist ein 1. Test", "Dies ist ein erste Test", "de"),  # Issue with gender
         ("Das macht $20 Herr.", "Das macht zwanzig Dollar Herr.", "de"),
         ("Das macht 20€ Herr.", "Das macht zwanzig Euro Herr.", "de"),
-        ("Das macht 20,15€ Herr.", "Das macht zwanzig Euro und fünfzehn Cent Herr.", "de"),
+        (
+            "Das macht 20,15€ Herr.",
+            "Das macht zwanzig Euro und fünfzehn Cent Herr.",
+            "de",
+        ),
         # Spanish
         ("En 12,5 segundos.", "En doce punto cinco segundos.", "es"),
         ("Había 50 soldados.", "Había cincuenta soldados.", "es"),
         ("Este es un 1er test", "Este es un primero test", "es"),
         ("Eso le costará $20 señor.", "Eso le costará veinte dólares señor.", "es"),
         ("Eso le costará 20€ señor.", "Eso le costará veinte euros señor.", "es"),
-        ("Eso le costará 20,15€ señor.", "Eso le costará veinte euros con quince céntimos señor.", "es"),
+        (
+            "Eso le costará 20,15€ señor.",
+            "Eso le costará veinte euros con quince céntimos señor.",
+            "es",
+        ),
         # Italian
         ("In 12,5 secondi.", "In dodici virgola cinque secondi.", "it"),
         ("C'erano 50 soldati.", "C'erano cinquanta soldati.", "it"),
         ("Questo è un 1° test", "Questo è un primo test", "it"),
         ("Ti costerà $20 signore.", "Ti costerà venti dollari signore.", "it"),
         ("Ti costerà 20€ signore.", "Ti costerà venti euro signore.", "it"),
-        ("Ti costerà 20,15€ signore.", "Ti costerà venti euro e quindici centesimi signore.", "it"),
+        (
+            "Ti costerà 20,15€ signore.",
+            "Ti costerà venti euro e quindici centesimi signore.",
+            "it",
+        ),
         # Portuguese
         ("Em 12,5 segundos.", "Em doze vírgula cinco segundos.", "pt"),
         ("Havia 50 soldados.", "Havia cinquenta soldados.", "pt"),
@@ -747,8 +804,16 @@ def test_expand_numbers_multilingual():
         # Polish
         ("W 12,5 sekundy.", "W dwanaście przecinek pięć sekundy.", "pl"),
         ("Było 50 żołnierzy.", "Było pięćdziesiąt żołnierzy.", "pl"),
-        ("To będzie kosztować 20€ panie.", "To będzie kosztować dwadzieścia euro panie.", "pl"),
-        ("To będzie kosztować 20,15€ panie.", "To będzie kosztować dwadzieścia euro, piętnaście centów panie.", "pl"),
+        (
+            "To będzie kosztować 20€ panie.",
+            "To będzie kosztować dwadzieścia euro panie.",
+            "pl",
+        ),
+        (
+            "To będzie kosztować 20,15€ panie.",
+            "To będzie kosztować dwadzieścia euro, piętnaście centów panie.",
+            "pl",
+        ),
         # Arabic
         ("في الـ 12,5 ثانية.", "في الـ اثنا عشر  , خمسون ثانية.", "ar"),
         ("كان هناك 50 جنديًا.", "كان هناك خمسون جنديًا.", "ar"),
@@ -762,8 +827,16 @@ def test_expand_numbers_multilingual():
         # Russian
         ("Через 12.5 секунды.", "Через двенадцать запятая пять секунды.", "ru"),
         ("Там было 50 солдат.", "Там было пятьдесят солдат.", "ru"),
-        ("Это будет 20.15€ сэр.", "Это будет двадцать евро, пятнадцать центов сэр.", "ru"),
-        ("Это будет стоить 20€ господин.", "Это будет стоить двадцать евро господин.", "ru"),
+        (
+            "Это будет 20.15€ сэр.",
+            "Это будет двадцать евро, пятнадцать центов сэр.",
+            "ru",
+        ),
+        (
+            "Это будет стоить 20€ господин.",
+            "Это будет стоить двадцать евро господин.",
+            "ru",
+        ),
         # Dutch
         ("In 12,5 seconden.", "In twaalf komma vijf seconden.", "nl"),
         ("Er waren 50 soldaten.", "Er waren vijftig soldaten.", "nl"),
@@ -803,18 +876,30 @@ def test_abbreviations_multilingual():
         ("La Dra. Martinez es muy buena.", "La doctora Martinez es muy buena.", "es"),
         # French
         ("Bonjour Mr. Dupond.", "Bonjour monsieur Dupond.", "fr"),
-        ("Mme. Moreau est absente aujourd'hui.", "madame Moreau est absente aujourd'hui.", "fr"),
+        (
+            "Mme. Moreau est absente aujourd'hui.",
+            "madame Moreau est absente aujourd'hui.",
+            "fr",
+        ),
         # German
         ("Frau Dr. Müller ist sehr klug.", "Frau doktor Müller ist sehr klug.", "de"),
         # Portuguese
         ("Olá Sr. Silva.", "Olá senhor Silva.", "pt"),
-        ("Dra. Costa, você está disponível?", "doutora Costa, você está disponível?", "pt"),
+        (
+            "Dra. Costa, você está disponível?",
+            "doutora Costa, você está disponível?",
+            "pt",
+        ),
         # Italian
         ("Buongiorno, Sig. Rossi.", "Buongiorno, signore Rossi.", "it"),
         # ("Sig.ra Bianchi, posso aiutarti?", 'signora Bianchi, posso aiutarti?', 'it'), # Issue with matching that pattern
         # Polish
         ("Dzień dobry, P. Kowalski.", "Dzień dobry, pani Kowalski.", "pl"),
-        ("M. Nowak, czy mogę zadać pytanie?", "pan Nowak, czy mogę zadać pytanie?", "pl"),
+        (
+            "M. Nowak, czy mogę zadać pytanie?",
+            "pan Nowak, czy mogę zadać pytanie?",
+            "pl",
+        ),
         # Czech
         ("P. Novák", "pan Novák", "cs"),
         ("Dr. Vojtěch", "doktor Vojtěch", "cs"),
@@ -823,7 +908,11 @@ def test_abbreviations_multilingual():
         ("Mevr. de Vries", "mevrouw de Vries", "nl"),
         # Russian
         ("Здравствуйте Г-н Иванов.", "Здравствуйте господин Иванов.", "ru"),
-        ("Д-р Смирнов здесь, чтобы увидеть вас.", "доктор Смирнов здесь, чтобы увидеть вас.", "ru"),
+        (
+            "Д-р Смирнов здесь, чтобы увидеть вас.",
+            "доктор Смирнов здесь, чтобы увидеть вас.",
+            "ru",
+        ),
         # Turkish
         ("Merhaba B. Yılmaz.", "Merhaba bay Yılmaz.", "tr"),
         ("Dr. Ayşe burada.", "doktor Ayşe burada.", "tr"),
@@ -842,8 +931,16 @@ def test_symbols_multilingual():
         ("Te veo @ la fiesta", "Te veo arroba la fiesta", "es"),
         ("J'ai 14° de fièvre", "J'ai 14 degrés de fièvre", "fr"),
         ("Die Rechnung beträgt £ 20", "Die Rechnung beträgt pfund 20", "de"),
-        ("O meu email é ana&joao@gmail.com", "O meu email é ana e joao arroba gmail.com", "pt"),
-        ("linguaggio di programmazione C#", "linguaggio di programmazione C cancelletto", "it"),
+        (
+            "O meu email é ana&joao@gmail.com",
+            "O meu email é ana e joao arroba gmail.com",
+            "pt",
+        ),
+        (
+            "linguaggio di programmazione C#",
+            "linguaggio di programmazione C cancelletto",
+            "it",
+        ),
         ("Moja temperatura to 36.6°", "Moja temperatura to 36.6 stopnie", "pl"),
         ("Mám 14% baterie", "Mám 14 procento baterie", "cs"),
         ("Těším se na tebe @ party", "Těším se na tebe na party", "cs"),
@@ -854,7 +951,11 @@ def test_symbols_multilingual():
         ("لدي 14% في البطارية", "لدي 14 في المئة في البطارية", "ar"),
         ("我的电量为 14%", "我的电量为 14 百分之", "zh"),
         ("Pilim %14 dolu.", "Pilim yüzde 14 dolu.", "tr"),
-        ("Az akkumulátorom töltöttsége 14%", "Az akkumulátorom töltöttsége 14 százalék", "hu"),
+        (
+            "Az akkumulátorom töltöttsége 14%",
+            "Az akkumulátorom töltöttsége 14 százalék",
+            "hu",
+        ),
         ("배터리 잔량이 14%입니다.", "배터리 잔량이 14 퍼센트입니다.", "ko"),
     ]
 
