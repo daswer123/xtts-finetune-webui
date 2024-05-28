@@ -1,28 +1,22 @@
 import argparse
-import os
-import sys
-import tempfile
-from pathlib import Path
-
+import glob
 import os
 import shutil
-import glob
+import sys
+import tempfile
+import traceback
+from pathlib import Path
 
 import gradio as gr
 import librosa.display
 import numpy as np
-
 import torch
 import torchaudio
-import traceback
-from utils.formatter import format_audio_list, find_latest_best_model
+from TTS.tts.configs.xtts_config import XttsConfig
+from TTS.tts.models.xtts import Xtts
+
+from utils.formatter import find_latest_best_model, format_audio_list
 from utils.gpt_train import train_gpt
-
-from TTS.tts.configs.xtts_config import XttsConfig
-from TTS.tts.models.xtts import Xtts
-
-from TTS.tts.configs.xtts_config import XttsConfig
-from TTS.tts.models.xtts import Xtts
 
 # Clear logs
 

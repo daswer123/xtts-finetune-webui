@@ -1,9 +1,9 @@
-import os
 import gc
+import os
+import shutil
 from pathlib import Path
 
 from trainer import Trainer, TrainerArgs
-
 from TTS.config.shared_configs import BaseDatasetConfig
 from TTS.tts.datasets import load_tts_samples
 from TTS.tts.layers.xtts.trainer.gpt_trainer import (
@@ -13,7 +13,6 @@ from TTS.tts.layers.xtts.trainer.gpt_trainer import (
     XttsAudioConfig,
 )
 from TTS.utils.manage import ModelManager
-import shutil
 
 
 def train_gpt(

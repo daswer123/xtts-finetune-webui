@@ -1,20 +1,17 @@
-import os
 import gc
-import torchaudio
-import pandas
-from faster_whisper import WhisperModel
+import os
 from glob import glob
-
-from tqdm import tqdm
-
 from typing import Iterable
+
+import pandas
+import torch
+import torchaudio
+from faster_whisper import WhisperModel
+from tqdm import tqdm
 
 # from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
 # Add support for JA train
 from utils.tokenizer import multilingual_cleaners
-
-import torch
-import torchaudio
 
 # torch.set_num_threads(1)
 
