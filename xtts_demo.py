@@ -15,7 +15,7 @@ import numpy as np
 import torch
 import torchaudio
 import traceback
-from utils.formatter import format_audio_list,find_latest_best_model
+from utils.formatter import format_audio_list,find_latest_best_model, list_audios
 from utils.gpt_train import train_gpt
 
 from TTS.tts.configs.xtts_config import XttsConfig
@@ -189,6 +189,11 @@ if __name__ == "__main__":
                 file_count="multiple",
                 label="Select here the audio files that you want to use for XTTS trainining (Supported formats: wav, mp3, and flac)",
             )
+            
+            audio_folder_path = gr.Textbox(
+                label="Path to the folder with audio files (optional):",
+                value="",
+            )
 
             whisper_model = gr.Dropdown(
                 label="Whisper Model",
@@ -231,34 +236,41 @@ if __name__ == "__main__":
 
             prompt_compute_btn = gr.Button(value="Step 1 - Create dataset")
         
-            def preprocess_dataset(audio_path, language, whisper_model, out_path,train_csv,eval_csv, progress=gr.Progress(track_tqdm=True)):
+            def preprocess_dataset(audio_path, audio_folder_path, language, whisper_model, out_path, train_csv, eval_csv, progress=gr.Progress(track_tqdm=True)):
                 clear_gpu_cache()
-
+            
                 train_csv = ""
                 eval_csv = ""
-
+            
                 out_path = os.path.join(out_path, "dataset")
                 os.makedirs(out_path, exist_ok=True)
-                if audio_path is None:
-                    return "You should provide one or multiple audio files! If you provided it, probably the upload of the files is not finished yet!", "", ""
+            
+                if audio_folder_path:
+                    audio_files = list(list_audios(audio_folder_path))
+                else:
+                    audio_files = audio_path
+            
+                if not audio_files:
+                    return "No audio files found! Please provide files via Gradio or specify a folder path.", "", ""
                 else:
                     try:
-                        train_meta, eval_meta, audio_total_size = format_audio_list(audio_path, whisper_model = whisper_model, target_language=language, out_path=out_path, gradio_progress=progress)
+                        train_meta, eval_meta, audio_total_size = format_audio_list(audio_files, whisper_model=whisper_model, target_language=language, out_path=out_path, gradio_progress=progress)
                     except:
                         traceback.print_exc()
                         error = traceback.format_exc()
                         return f"The data processing was interrupted due an error !! Please check the console to verify the full error message! \n Error summary: {error}", "", ""
-
+            
                 # clear_gpu_cache()
-
+            
                 # if audio total len is less than 2 minutes raise an error
                 if audio_total_size < 120:
                     message = "The sum of the duration of the audios that you provided should be at least 2 minutes!"
                     print(message)
                     return message, "", ""
-
+            
                 print("Dataset Processed!")
                 return "Dataset Processed!", train_meta, eval_meta
+
 
         with gr.Tab("2 - Fine-tuning XTTS Encoder"):
             load_params_btn = gr.Button(value="Load Params from output folder")
@@ -572,6 +584,7 @@ if __name__ == "__main__":
                 fn=preprocess_dataset,
                 inputs=[
                     upload_file,
+                    audio_folder_path,
                     lang,
                     whisper_model,
                     out_path,
@@ -584,6 +597,7 @@ if __name__ == "__main__":
                     eval_csv,
                 ],
             )
+
 
             load_params_btn.click(
                 fn=load_params,
