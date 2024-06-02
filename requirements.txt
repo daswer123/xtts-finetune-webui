@@ -1,6 +1,7 @@
-faster_whisper==0.10.0
-gradio==4.9.1
-tts == 0.22.0
+faster_whisper==1.0.2
+gradio==4.13.0
+spacy==3.7.4
+coqui-tts[languages] == 0.24.1
 
 cutlet
 fugashi[unidic-lite]

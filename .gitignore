@@ -161,3 +161,4 @@ cython_debug/
 
 base_models
 finetune_models
+/test_model

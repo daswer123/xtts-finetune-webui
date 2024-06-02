@@ -313,7 +313,7 @@ if __name__ == "__main__":
             )
             clear_train_data = gr.Dropdown(
                 label="Clear train data, you will delete selected folder, after optimizing",
-                value="run",
+                value="none",
                 choices=[
                     "none",
                     "run",
@@ -664,5 +664,6 @@ if __name__ == "__main__":
         share=False,
         debug=False,
         server_port=args.port,
-        server_name="localhost"
+        # inweb=True,
+        # server_name="localhost"
     )

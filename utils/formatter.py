@@ -7,9 +7,9 @@ from glob import glob
 
 from tqdm import tqdm
 
-# from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
+from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
 # Add support for JA train
-from utils.tokenizer import multilingual_cleaners
+# from utils.tokenizer import multilingual_cleaners
 
 import torch
 import torchaudio
