@@ -9,9 +9,9 @@ import torchaudio
 from faster_whisper import WhisperModel
 from tqdm import tqdm
 
-# from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
+from TTS.tts.layers.xtts.tokenizer import multilingual_cleaners
 # Add support for JA train
-from utils.tokenizer import multilingual_cleaners
+# from utils.tokenizer import multilingual_cleaners
 
 # torch.set_num_threads(1)
 
@@ -155,7 +155,7 @@ def format_audio_list(
         # to next iteration.
         if skip_processing:
             continue
-
+        print(f"Processing torchaudio.load({audio_path})...")
         wav, sr = torchaudio.load(audio_path)
         # stereo to mono if needed
         if wav.size(0) != 1:

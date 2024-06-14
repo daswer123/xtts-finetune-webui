@@ -15,7 +15,7 @@ import torchaudio
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
-from utils.formatter import find_latest_best_model, format_audio_list
+from utils.formatter import format_audio_list,find_latest_best_model, list_audios
 from utils.gpt_train import train_gpt
 
 # Clear logs
@@ -219,6 +219,11 @@ if __name__ == "__main__":
                 label="Select here the audio files that you want to use for XTTS trainining (Supported formats: wav, mp3, and flac)",
             )
 
+            audio_folder_path = gr.Textbox(
+                label="Path to the folder with audio files (optional):",
+                value="",
+            )
+
             whisper_model = gr.Dropdown(
                 label="Whisper Model",
                 value="large-v3",
@@ -254,6 +259,7 @@ if __name__ == "__main__":
 
             def preprocess_dataset(
                 audio_path,
+                audio_folder_path,
                 language,
                 whisper_model,
                 out_path,
@@ -268,16 +274,17 @@ if __name__ == "__main__":
 
                 out_path = os.path.join(out_path, "dataset")
                 os.makedirs(out_path, exist_ok=True)
-                if audio_path is None:
-                    return (
-                        "You should provide one or multiple audio files! If you provided it, probably the upload of the files is not finished yet!",
-                        "",
-                        "",
-                    )
+                if audio_folder_path:
+                    audio_files = list(list_audios(audio_folder_path))
+                else:
+                    audio_files = audio_path
+
+                if not audio_files:
+                    return "No audio files found! Please provide files via Gradio or specify a folder path.", "", ""
                 else:
                     try:
                         train_meta, eval_meta, audio_total_size = format_audio_list(
-                            audio_path,
+                            audio_files,
                             whisper_model=whisper_model,
                             target_language=language,
                             out_path=out_path,
@@ -350,7 +357,7 @@ if __name__ == "__main__":
             )
             clear_train_data = gr.Dropdown(
                 label="Clear train data, you will delete selected folder, after optimizing",
-                value="run",
+                value="none",
                 choices=["none", "run", "dataset", "all"],
             )
 
@@ -661,6 +668,7 @@ if __name__ == "__main__":
                 fn=preprocess_dataset,
                 inputs=[
                     upload_file,
+                    audio_folder_path,
                     lang,
                     whisper_model,
                     out_path,
@@ -746,4 +754,4 @@ if __name__ == "__main__":
                 ],
             )
 
-    demo.launch(share=False, debug=False, server_port=args.port, server_name="localhost")
+    demo.launch(share=False, debug=True, server_port=args.port) # , server_name="localhost"

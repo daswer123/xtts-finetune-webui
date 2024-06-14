@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  tts_service:
+    build: .
+    image: tts_image
+    container_name: tts_container
+    command: ["/usr/bin/python3", "xtts_demo.py"]
+    volumes:
+      - .:/root/tts
+      - .cache:/root/.cache/huggingface # hugging face cache
+    ports:
+      - "5003:5003" # Map ports if your application uses them
+    #device_requests: # for futur docker version
+    #  - driver: nvidia
+    #    count: all
+    #    capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            # device_ids: ['0', '3']
+            capabilities: [gpu]
+
+# docker exec -it tts_container /bin/bash
