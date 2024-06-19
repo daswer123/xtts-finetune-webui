@@ -56,6 +56,23 @@ def load_info_dataset(dataset_name):
     with open(f"datasets/{dataset_name}/info.json", "r") as f:
         return json.load(f)
 
+DEFAULT_MODELS = ["main","v2.0.3","v2.0.2","v2.0.1","v2.0.0"]
+
+def get_all_xtts_models():
+    # return all folder name from base_models/xtts
+    if not os.path.exists("base_models/xtts"):
+        return DEFAULT_MODELS
+    
+    return DEFAULT_MODELS + [f.name for f in os.scandir("base_models/xtts") if f.is_dir()]
+
+def get_all_dvae_models():
+    # return all folder name from base_models/dvae
+    if not os.path.exists("base_models/dvae"):
+        return DEFAULT_MODELS
+    
+    return ["train and use from dataset"] + DEFAULT_MODELS + [f.name for f in os.scandir("base_models/dvae") if f.is_dir()]
+
+
 XTTS_MODEL = None
 
 
@@ -424,18 +441,35 @@ if __name__ == "__main__":
             load_params_btn = gr.Button(value="Load Params from output folder")
 
         with gr.Tab("3 - Fine-tuning XTTS Encoder"):
-            load_params_btn = gr.Button(value="Load Params from output folder")
-            version = gr.Dropdown(
-                label="XTTS base version",
-                value="v2.0.2",
-                choices=[
-                    "v2.0.3",
-                    "v2.0.2",
-                    "v2.0.1",
-                    "v2.0.0",
-                    "main"
-                ],
-            )
+            with gr.Row():
+                finetune_dataset = gr.Dropdown(label="Dataset name", choices=get_dataset_list())
+                finetune_dataset_info = gr.TextArea(label="Dataset info",interactive=False)
+                update_finetune_dataset_list = gr.Button(value="Update datasets list")            
+            with gr.Row():
+                with gr.Column():
+                    version = gr.Dropdown(
+                        label="XTTS base version",
+                        info="You can use custom model, just put your model.pth in base_models/xtts folder",
+                        value="v2.0.2",
+                        choices=get_all_xtts_models(),
+                    )
+
+                    version_update = gr.Button(value="Update xtts-versions list")
+                
+                with gr.Column():
+                    dvae_version = gr.Dropdown(
+                        label="DVAE base version",
+                        info="You can use custom DVAE, just put your dvae.pth in base_models/dvae folder",
+                        value="main",
+                        choices=get_all_dvae_models(),
+                    )
+                    dvaer_version_update = gr.Button(value="Update DVAE versions list")
+                    
+            dvae_use_and_train = gr.Checkbox(label="Train and use DVAE (You will first filentune DVAE and then you will filentune GPT-2 on the trained DVAE.)")
+
+                    
+            
+            
             train_csv = gr.Textbox(
                 label="Train CSV:",
             )
