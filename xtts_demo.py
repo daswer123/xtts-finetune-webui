@@ -1,5 +1,7 @@
 import argparse
+import json
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -15,7 +17,8 @@ import numpy as np
 import torch
 import torchaudio
 import traceback
-from utils.formatter import format_audio_list,find_latest_best_model, list_audios
+from utils.dataset_upload import create_and_upload_dataset
+from utils.formatter import format_audio_list,find_latest_best_model, list_audios, merge_datasets
 from utils.gpt_train import train_gpt
 
 from faster_whisper import WhisperModel
@@ -25,6 +28,8 @@ from TTS.tts.models.xtts import Xtts
 
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
+
+from datasets import load_dataset
 
 # Clear logs
 def remove_log_file(file_path):
@@ -40,7 +45,37 @@ def clear_gpu_cache():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
+def get_dataset_list():
+    # return folders name in datasets folder
+    # If not exists forlder return []
+    if not os.path.exists("datasets"):
+        return []
+    return [f.name for f in os.scandir("datasets") if f.is_dir()]
+
+def load_info_dataset(dataset_name):
+    with open(f"datasets/{dataset_name}/info.json", "r") as f:
+        return json.load(f)
+
+DEFAULT_MODELS = ["main","v2.0.3","v2.0.2","v2.0.1","v2.0.0"]
+
+def get_all_xtts_models():
+    # return all folder name from base_models/xtts
+    if not os.path.exists("base_models/xtts"):
+        return DEFAULT_MODELS
+    
+    return DEFAULT_MODELS + [f.name for f in os.scandir("base_models/xtts") if f.is_dir()]
+
+def get_all_dvae_models():
+    # return all folder name from base_models/dvae
+    if not os.path.exists("base_models/dvae"):
+        return DEFAULT_MODELS
+    
+    return ["train and use from dataset"] + DEFAULT_MODELS + [f.name for f in os.scandir("base_models/dvae") if f.is_dir()]
+
+
 XTTS_MODEL = None
+
+
 def load_model(xtts_checkpoint, xtts_config, xtts_vocab,xtts_speaker):
     global XTTS_MODEL
     clear_gpu_cache()
@@ -175,10 +210,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with gr.Blocks() as demo:
-        with gr.Tab("1 - Data processing"):
+        with gr.Tab("1 - Dataset Creator"):
+          with gr.Tab("Create Dataset"):
+            dataset_name = gr.Textbox(
+                label="Dataset name:",
+                info="Write the name of the dataset, the processed files will be saved in the datasets folder. Datasets can be used to train GPT-2 model and DVAE.",
+                value="test_dataset",
+            )
+            
             out_path = gr.Textbox(
                 label="Output path (where data and checkpoints will be saved):",
                 value=args.out_path,
+                visible=False
             )
             # upload_file = gr.Audio(
             #     sources="upload",
@@ -194,10 +237,18 @@ if __name__ == "__main__":
                 label="Path to the folder with audio files (optional):",
                 value="",
             )
+            
+            use_separate_audio = gr.Checkbox(
+                label="Separate audio files",
+                info="If your audio has noise or music in the background this can help you improve the quality of your workout by giving you audio without music in the background",
+                value=False
+            )
 
             whisper_model = gr.Dropdown(
                 label="Whisper Model",
                 value="large-v3",
+                allow_custom_value=True,
+                info="You can write a custom model, write in the format username/model - the model must be on huggingface and also must be formatted in the format ct2",
                 choices=[
                     "large-v3",
                     "large-v2",
@@ -233,16 +284,121 @@ if __name__ == "__main__":
                 label="Progress:"
             )
             # demo.load(read_logs, None, logs, every=1)
-
             prompt_compute_btn = gr.Button(value="Step 1 - Create dataset")
+
+          
+          def load_dataset_info(dataset_name):
+              data = load_info_dataset(dataset_name)
+              
+            #   Format the output
+              data = "\n".join([f"{k}: {v}" for k, v in data.items()])
+              return data
+          
+          def update_avalible_datasets():
+              datasets = get_dataset_list()
+              
+              return gr.update(choices=datasets), gr.update(choices=datasets)
+          
+          def update_upload_avalible_datasets():
+              datasets = get_dataset_list()
+              
+              return gr.update(choices=datasets)
+          
+          def merge_datasets_gr(dataset_1, dataset_2, new_dataset_name):
+              
+              dataset_1_path = os.path.join("datasets", dataset_1)
+              dataset_2_path = os.path.join("datasets", dataset_2)
+              new_dataset_path = os.path.join("datasets", new_dataset_name)
+              
+              if dataset_1 is None:
+                return "Error: Dataset 1 not found", gr.update(choices=datasets), gr.update(choices=datasets)
+            
+              if dataset_2 is None:
+                return "Error: Dataset 2 not found", gr.update(choices=datasets), gr.update(choices=datasets)
+            
+              if dataset_1 == dataset_2:
+                return "Error: Datasets must be different", gr.update(choices=datasets), gr.update(choices=datasets)
+            
+              if new_dataset_name is None:
+                return "Enter name of new dataset", gr.update(choices=datasets), gr.update(choices=datasets)
+              
+              try:
+                merge_datasets(dataset_1_path, dataset_2_path, new_dataset_path)
+                
+                datasets = get_dataset_list()
+                return "Done", gr.update(choices=datasets), gr.update(choices=datasets) 
+              except Exception as e:
+                return "Error: " + str(e), gr.update(choices=datasets), gr.update(choices=datasets)
+          
+          with gr.Tab("Merge dataset"):
+            # Get datasets list 
+            datasets = get_dataset_list()  
+            update_merge_datasets_btn = gr.Button(value="Update datasets list")
+            with gr.Row():
+                with gr.Column():
+                    merge_dataset_1 = gr.Dropdown(label="Select 1 dataset to merge", choices=datasets)
+                    merge_dataset_1_info = gr.TextArea(label="Dataset info",interactive=False)
+                with gr.Column():
+                    merge_dataset_2 = gr.Dropdown(label="Select 2 dataset to merge",choices=datasets)
+                    merge_dataset_2_info = gr.TextArea(label="Dataset info",interactive=False)
+            
+            new_dataset_name = gr.Textbox(label="New dataset name")
+            merge_datasets_btn = gr.Button(value="Merge datasets")
+            merge_dataset_status = gr.Label(value="Status")
+            
+            merge_dataset_1.change(load_dataset_info, merge_dataset_1, merge_dataset_1_info)
+            merge_dataset_2.change(load_dataset_info, merge_dataset_2, merge_dataset_2_info)
+            update_merge_datasets_btn.click(update_avalible_datasets, outputs=[merge_dataset_1, merge_dataset_2])
+            
+            merge_datasets_btn.click(merge_datasets_gr, inputs=[merge_dataset_1, merge_dataset_2, new_dataset_name], outputs=[merge_dataset_status, merge_dataset_1, merge_dataset_2])
         
-            def preprocess_dataset(audio_path, audio_folder_path, language, whisper_model, out_path, train_csv, eval_csv, progress=gr.Progress(track_tqdm=True)):
+        
+          def authorizate_hf(upload_dataset_token):
+              # huggingface-cli login --token $HUGGINGFACE_TOKEN --add-to-git-credential 
+              cmd = "huggingface-cli login --token " + upload_dataset_token
+              subprocess.run(cmd, shell=True)
+              
+              return "Done"
+        
+          def upload_dataset_to_hf(upload_dataset_adress, upload_dataset):
+              upload_dataset_path = os.path.join("datasets", upload_dataset)
+          
+              # Создаем и загружаем датасет на HF Hub
+              create_and_upload_dataset(upload_dataset_adress, upload_dataset_path)
+          
+              return f"Dataset {upload_dataset} uploaded to {upload_dataset_adress}"
+        
+        
+        #   TODO
+          with gr.Tab("Upload dataset to HF",render=True):
+            datasets = get_dataset_list()
+            upload_dataset_token_status = gr.Label(value="Status Authorizate")
+            upload_dataset_token = gr.Textbox(label="Huggingface token", type="password")
+            upload_dataset_token_btn = gr.Button(value="Authenticate")
+            
+            upload_dataset_adress = gr.Textbox(label="Huggingface repo", value="username/reponame")
+            with gr.Row():
+                upload_dataset = gr.Dropdown(label="Select dataset to upload", choices=datasets)
+                upload_update_dataset = gr.Button(value="Update datasets list")
+            upload_dataset_info = gr.TextArea(label="Dataset info",interactive=False)
+            upload_dataset_btn = gr.Button(value="Upload dataset")
+            
+            
+            upload_dataset_token_btn.click(authorizate_hf, inputs=[upload_dataset_token], outputs=[upload_dataset_token_status])
+            
+            upload_dataset.change(load_dataset_info, upload_dataset, upload_dataset_info)
+            upload_dataset_btn.click(upload_dataset_to_hf, inputs=[upload_dataset_adress, upload_dataset], outputs=[upload_dataset_info])
+            
+            upload_update_dataset.click(update_upload_avalible_datasets, outputs=[upload_dataset])
+            
+        
+            def preprocess_dataset(audio_path, audio_folder_path, language, whisper_model, dataset_name,use_separate_audio, train_csv, eval_csv, progress=gr.Progress(track_tqdm=True)):
                 clear_gpu_cache()
             
                 train_csv = ""
                 eval_csv = ""
             
-                out_path = os.path.join(out_path, "dataset")
+                out_path = os.path.join("datasets",dataset_name)
                 os.makedirs(out_path, exist_ok=True)
             
                 if audio_folder_path:
@@ -264,7 +420,7 @@ if __name__ == "__main__":
                             compute_type = "float32"
                         
                         asr_model = WhisperModel(whisper_model, device=device, compute_type=compute_type)
-                        train_meta, eval_meta, audio_total_size = format_audio_list(audio_files, asr_model=asr_model, target_language=language, out_path=out_path, gradio_progress=progress)
+                        train_meta, eval_meta, audio_total_size = format_audio_list(audio_files, asr_model=asr_model, target_language=language, out_path=out_path, use_separate_audio=use_separate_audio, gradio_progress=progress)
                     except:
                         traceback.print_exc()
                         error = traceback.format_exc()
@@ -281,20 +437,39 @@ if __name__ == "__main__":
                 print("Dataset Processed!")
                 return "Dataset Processed!", train_meta, eval_meta
 
-
-        with gr.Tab("2 - Fine-tuning XTTS Encoder"):
+        with gr.Tab("2 - Fine-tuning DVAE"):
             load_params_btn = gr.Button(value="Load Params from output folder")
-            version = gr.Dropdown(
-                label="XTTS base version",
-                value="v2.0.2",
-                choices=[
-                    "v2.0.3",
-                    "v2.0.2",
-                    "v2.0.1",
-                    "v2.0.0",
-                    "main"
-                ],
-            )
+
+        with gr.Tab("3 - Fine-tuning XTTS Encoder"):
+            with gr.Row():
+                finetune_dataset = gr.Dropdown(label="Dataset name", choices=get_dataset_list())
+                finetune_dataset_info = gr.TextArea(label="Dataset info",interactive=False)
+                update_finetune_dataset_list = gr.Button(value="Update datasets list")            
+            with gr.Row():
+                with gr.Column():
+                    version = gr.Dropdown(
+                        label="XTTS base version",
+                        info="You can use custom model, just put your model.pth in base_models/xtts folder",
+                        value="v2.0.2",
+                        choices=get_all_xtts_models(),
+                    )
+
+                    version_update = gr.Button(value="Update xtts-versions list")
+                
+                with gr.Column():
+                    dvae_version = gr.Dropdown(
+                        label="DVAE base version",
+                        info="You can use custom DVAE, just put your dvae.pth in base_models/dvae folder",
+                        value="main",
+                        choices=get_all_dvae_models(),
+                    )
+                    dvaer_version_update = gr.Button(value="Update DVAE versions list")
+                    
+            dvae_use_and_train = gr.Checkbox(label="Train and use DVAE (You will first filentune DVAE and then you will filentune GPT-2 on the trained DVAE.)")
+
+                    
+            
+            
             train_csv = gr.Textbox(
                 label="Train CSV:",
             )
@@ -597,7 +772,8 @@ if __name__ == "__main__":
                     audio_folder_path,
                     lang,
                     whisper_model,
-                    out_path,
+                    dataset_name,
+                    use_separate_audio,
                     train_csv,
                     eval_csv
                 ],
@@ -688,6 +864,7 @@ if __name__ == "__main__":
         share=False,
         debug=False,
         server_port=args.port,
+        inbrowser=True,
         # inweb=True,
         # server_name="localhost"
     )

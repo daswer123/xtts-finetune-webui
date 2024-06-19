@@ -11,47 +11,14 @@ from TTS.tts.layers.xtts.trainer.gpt_trainer import GPTArgs, GPTTrainer, GPTTrai
 from TTS.utils.manage import ModelManager
 import shutil
 
-
-def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm, train_csv, eval_csv, output_path, max_audio_length=255995):
-    #  Logging parameters
-    RUN_NAME = "GPT_XTTS_FT"
-    PROJECT_NAME = "XTTS_trainer"
-    DASHBOARD_LOGGER = "tensorboard"
-    LOGGER_URI = None
-
-    # print(f"XTTS version = {version}")
-
-    # Set here the path that the checkpoints will be saved. Default: ./run/training/
-    OUT_PATH = os.path.join(output_path, "run", "training")
-
-    # Training Parameters
-    OPTIMIZER_WD_ONLY_ON_WEIGHTS = True  # for multi-gpu training please make it False
-    START_WITH_EVAL = False  # if True it will star with evaluation
-    BATCH_SIZE = batch_size  # set here the batch size
-    GRAD_ACUMM_STEPS = grad_acumm  # set here the grad accumulation steps
-
-
-    # Define here the dataset that you want to use for the fine-tuning on.
-    config_dataset = BaseDatasetConfig(
-        formatter="coqui",
-        dataset_name="ft_dataset",
-        path=os.path.dirname(train_csv),
-        meta_file_train=train_csv,
-        meta_file_val=eval_csv,
-        language=language,
-    )
-
-    # Add here the configs of the datasets
-    DATASETS_CONFIG_LIST = [config_dataset]
-
-    # Define the path where XTTS v2.0.1 files will be downloaded
-    CHECKPOINTS_OUT_PATH = os.path.join(Path.cwd(), "base_models",f"{version}")
+def download_xtts_dvae(version, custom_dvae_path, custom_mel_norm_path):
+    # Define the path where DVAE files will be downloaded
+    CHECKPOINTS_OUT_PATH = os.path.join(Path.cwd(), "base_models", "dvae", f"{version}")
     os.makedirs(CHECKPOINTS_OUT_PATH, exist_ok=True)
 
-
     # DVAE files
-    DVAE_CHECKPOINT_LINK = "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/dvae.pth"
-    MEL_NORM_LINK = "https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/main/mel_stats.pth"
+    DVAE_CHECKPOINT_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/dvae.pth"
+    MEL_NORM_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/mel_stats.pth"
 
     # Set the path to the downloaded files
     DVAE_CHECKPOINT = os.path.join(CHECKPOINTS_OUT_PATH, os.path.basename(DVAE_CHECKPOINT_LINK))
@@ -60,8 +27,19 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
     # download DVAE files if needed
     if not os.path.isfile(DVAE_CHECKPOINT) or not os.path.isfile(MEL_NORM_FILE):
         print(" > Downloading DVAE files!")
-        ModelManager._download_model_files([MEL_NORM_LINK, DVAE_CHECKPOINT_LINK], CHECKPOINTS_OUT_PATH, progress_bar=True)
+        while True:
+            try:
+                ModelManager._download_model_files([MEL_NORM_LINK, DVAE_CHECKPOINT_LINK], CHECKPOINTS_OUT_PATH, progress_bar=True)
+                break
+            except Exception as e:
+                print(f"Error downloading DVAE files: {str(e)}. Retrying...")
 
+    return DVAE_CHECKPOINT, MEL_NORM_FILE
+
+def download_xtts_files(version, output_path):
+    # Define the path where XTTS v2.0.1 files will be downloaded
+    CHECKPOINTS_OUT_PATH = os.path.join(Path.cwd(), "base_models", f"{version}")
+    os.makedirs(CHECKPOINTS_OUT_PATH, exist_ok=True)
 
     # Download XTTS v2.0 checkpoint if needed
     TOKENIZER_FILE_LINK = f"https://coqui.gateway.scarf.sh/hf-coqui/XTTS-v2/{version}/vocab.json"
@@ -78,31 +56,64 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
     # download XTTS v2.0 files if needed
     if not os.path.isfile(TOKENIZER_FILE) or not os.path.isfile(XTTS_CHECKPOINT):
         print(f" > Downloading XTTS v{version} files!")
-        ModelManager._download_model_files(
-            [TOKENIZER_FILE_LINK, XTTS_CHECKPOINT_LINK, XTTS_CONFIG_LINK,XTTS_SPEAKER_LINK], CHECKPOINTS_OUT_PATH, progress_bar=True
-        )
+        while True:
+            try:
+                ModelManager._download_model_files(
+                    [TOKENIZER_FILE_LINK, XTTS_CHECKPOINT_LINK, XTTS_CONFIG_LINK, XTTS_SPEAKER_LINK], CHECKPOINTS_OUT_PATH, progress_bar=True
+                )
+                break
+            except Exception as e:
+                print(f"Error downloading XTTS files: {str(e)}. Retrying...")
 
-    # Transfer this files to ready folder
-    READY_MODEL_PATH = os.path.join(output_path,"ready")
+    # Transfer these files to the ready folder
+    READY_MODEL_PATH = os.path.join(output_path, "ready")
     if not os.path.exists(READY_MODEL_PATH):
         os.makedirs(READY_MODEL_PATH)
 
     NEW_TOKENIZER_FILE = os.path.join(READY_MODEL_PATH, "vocab.json")
-    # NEW_XTTS_CHECKPOINT = os.path.join(READY_MODEL_PATH, "model.pth")
     NEW_XTTS_CONFIG_FILE = os.path.join(READY_MODEL_PATH, "config.json")
     NEW_XTTS_SPEAKER_FILE = os.path.join(READY_MODEL_PATH, "speakers_xtts.pth")
 
     shutil.copy(TOKENIZER_FILE, NEW_TOKENIZER_FILE)
-    # shutil.copy(XTTS_CHECKPOINT, os.path.join(READY_MODEL_PATH, "model.pth"))
     shutil.copy(XTTS_CONFIG_FILE, NEW_XTTS_CONFIG_FILE)
     shutil.copy(XTTS_SPEAKER_FILE, NEW_XTTS_SPEAKER_FILE)
 
-# Use from ready folder
-    TOKENIZER_FILE = NEW_TOKENIZER_FILE # vocab.json file
-    # XTTS_CHECKPOINT = NEW_XTTS_CHECKPOINT  # model.pth file
-    XTTS_CONFIG_FILE = NEW_XTTS_CONFIG_FILE  # config.json file
-    XTTS_SPEAKER_FILE = NEW_XTTS_SPEAKER_FILE  # speakers_xtts.pth file
+    return NEW_TOKENIZER_FILE, NEW_XTTS_CONFIG_FILE, NEW_XTTS_SPEAKER_FILE, XTTS_CHECKPOINT
 
+def train_gpt(custom_model, version, language, num_epochs, batch_size, grad_acumm, train_csv, eval_csv, output_path, max_audio_length=255995):
+    #  Logging parameters
+    RUN_NAME = "GPT_XTTS_FT"
+    PROJECT_NAME = "XTTS_trainer"
+    DASHBOARD_LOGGER = "tensorboard"
+    LOGGER_URI = None
+
+    # Set here the path that the checkpoints will be saved. Default: ./run/training/
+    OUT_PATH = os.path.join(output_path, "run", "training")
+
+    # Training Parameters
+    OPTIMIZER_WD_ONLY_ON_WEIGHTS = True  # for multi-gpu training please make it False
+    START_WITH_EVAL = False  # if True it will star with evaluation
+    BATCH_SIZE = batch_size  # set here the batch size
+    GRAD_ACUMM_STEPS = grad_acumm  # set here the grad accumulation steps
+
+    # Define here the dataset that you want to use for the fine-tuning on.
+    config_dataset = BaseDatasetConfig(
+        formatter="coqui",
+        dataset_name="ft_dataset",
+        path=os.path.dirname(train_csv),
+        meta_file_train=train_csv,
+        meta_file_val=eval_csv,
+        language=language,
+    )
+
+    # Add here the configs of the datasets
+    DATASETS_CONFIG_LIST = [config_dataset]
+
+    # Download DVAE files
+    DVAE_CHECKPOINT, MEL_NORM_FILE = download_xtts_dvae(version, output_path)
+
+    # Download XTTS files
+    TOKENIZER_FILE, XTTS_CONFIG_FILE, XTTS_SPEAKER_FILE, XTTS_CHECKPOINT = download_xtts_files(version, output_path)
 
     if custom_model != "":
         if os.path.exists(custom_model) and custom_model.endswith('.pth'):
@@ -114,6 +125,7 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
     num_workers = 8
     if language == "ja":
         num_workers = 0
+
     # init args and config
     model_args = GPTArgs(
         max_conditioning_length=132300,  # 6 secs
@@ -140,7 +152,7 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
         model_args=model_args,
         run_name=RUN_NAME,
         project_name=PROJECT_NAME,
-        run_description="""
+        run_description=""""
             GPT XTTS training
             """,
         dashboard_logger=DASHBOARD_LOGGER,
@@ -166,7 +178,7 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
         lr=5e-06,  # learning rate
         lr_scheduler="MultiStepLR",
         # it was adjusted accordly for the new step scheme
-        lr_scheduler_params={"milestones": [50000 * 18, 150000 * 18, 300000 * 18], "gamma": 0.5, "last_epoch": -1},
+        lr_scheduler_params={"milestones": [50000*18, 150000*18, 300000*18], "gamma": 0.5, "last_epoch": -1},
         test_sentences=[],
     )
 
@@ -199,17 +211,17 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
 
     # get the longest text audio file to use as speaker reference
     samples_len = [len(item["text"].split(" ")) for item in train_samples]
-    longest_text_idx =  samples_len.index(max(samples_len))
+    longest_text_idx = samples_len.index(max(samples_len))
     speaker_ref = train_samples[longest_text_idx]["audio_file"]
 
     trainer_out_path = trainer.output_path
-    
+
     # close file handlers and remove them from the logger
     for handler in logging.getLogger('trainer').handlers:
         if isinstance(handler, logging.FileHandler):
             handler.close()
             logging.getLogger('trainer').removeHandler(handler)
-    
+
     # now you should be able to delete the log file
     log_file = os.path.join(trainer.output_path, f"trainer_{trainer.args.rank}_log.txt")
     os.remove(log_file)
@@ -218,4 +230,4 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
     del model, trainer, train_samples, eval_samples
     gc.collect()
 
-    return XTTS_SPEAKER_FILE,XTTS_CONFIG_FILE, XTTS_CHECKPOINT, TOKENIZER_FILE, trainer_out_path, speaker_ref
+    return XTTS_SPEAKER_FILE, XTTS_CONFIG_FILE, XTTS_CHECKPOINT, TOKENIZER_FILE, trainer_out_path, speaker_ref
