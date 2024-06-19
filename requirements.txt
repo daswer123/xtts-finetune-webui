@@ -2,6 +2,8 @@ faster_whisper==1.0.2
 gradio==4.13.0
 spacy==3.7.4
 coqui-tts[languages] == 0.24.1
-
 cutlet
 fugashi[unidic-lite]
+audio-separator[gpu]
+huggingface_hub[cli]
+datasets

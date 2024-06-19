@@ -56,7 +56,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 1. Make sure you have `Cuda` installed
 2. `git clone https://github.com/daswer123/xtts-finetune-webui`
 3. `cd xtts-finetune-webui`
-4. `pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://download.pytorch.org/whl/cu118`
+4. `pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 torchvision==0.16.1 --index-url https://download.pytorch.org/whl/cu118`
 5. `pip install -r requirements.txt`
 
 ### If you're using Windows
