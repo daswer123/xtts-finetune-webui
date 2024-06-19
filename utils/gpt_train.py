@@ -1,3 +1,4 @@
+import logging
 import os
 import gc
 from pathlib import Path
@@ -202,6 +203,16 @@ def train_gpt(custom_model,version, language, num_epochs, batch_size, grad_acumm
     speaker_ref = train_samples[longest_text_idx]["audio_file"]
 
     trainer_out_path = trainer.output_path
+    
+    # close file handlers and remove them from the logger
+    for handler in logging.getLogger('trainer').handlers:
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
+            logging.getLogger('trainer').removeHandler(handler)
+    
+    # now you should be able to delete the log file
+    log_file = os.path.join(trainer.output_path, f"trainer_{trainer.args.rank}_log.txt")
+    os.remove(log_file)
 
     # deallocate VRAM and RAM
     del model, trainer, train_samples, eval_samples

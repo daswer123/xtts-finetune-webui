@@ -64,3 +64,10 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 1. First start `install.bat`
 2. To start the server start `start.bat`
 3. Go to the local address `127.0.0.1:5003`
+
+### On Linux
+
+1. Run `bash install.sh`
+2. To start the server start `start.sh`
+3. Go to the local address `127.0.0.1:5003`
+~                                            

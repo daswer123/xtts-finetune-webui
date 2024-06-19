@@ -18,6 +18,8 @@ import traceback
 from utils.formatter import format_audio_list,find_latest_best_model, list_audios
 from utils.gpt_train import train_gpt
 
+from faster_whisper import WhisperModel
+
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
@@ -58,8 +60,6 @@ def load_model(xtts_checkpoint, xtts_config, xtts_vocab,xtts_speaker):
 def run_tts(lang, tts_text, speaker_audio_file, temperature, length_penalty,repetition_penalty,top_k,top_p,sentence_split,use_config):
     if XTTS_MODEL is None or not speaker_audio_file:
         return "You need to run the previous step to load the model !!", None, None
-
-
 
     gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(audio_path=speaker_audio_file, gpt_cond_len=XTTS_MODEL.config.gpt_cond_len, max_ref_length=XTTS_MODEL.config.max_ref_len, sound_norm_refs=XTTS_MODEL.config.sound_norm_refs)
     
@@ -254,7 +254,17 @@ if __name__ == "__main__":
                     return "No audio files found! Please provide files via Gradio or specify a folder path.", "", ""
                 else:
                     try:
-                        train_meta, eval_meta, audio_total_size = format_audio_list(audio_files, whisper_model=whisper_model, target_language=language, out_path=out_path, gradio_progress=progress)
+                        # Loading Whisper
+                        device = "cuda" if torch.cuda.is_available() else "cpu" 
+                        
+                        # Detect compute type 
+                        if torch.cuda.is_available():
+                            compute_type = "float16"
+                        else:
+                            compute_type = "float32"
+                        
+                        asr_model = WhisperModel(whisper_model, device=device, compute_type=compute_type)
+                        train_meta, eval_meta, audio_total_size = format_audio_list(audio_files, asr_model=asr_model, target_language=language, out_path=out_path, gradio_progress=progress)
                     except:
                         traceback.print_exc()
                         error = traceback.format_exc()
