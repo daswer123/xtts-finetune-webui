@@ -351,18 +351,23 @@ if __name__ == "__main__":
             train_btn = gr.Button(value="Step 2 - Run the training")
             optimize_model_btn = gr.Button(value="Step 2.5 - Optimize the model")
             
-            def train_model(custom_model,version,language, train_csv, eval_csv, num_epochs, batch_size, grad_acumm, output_path, max_audio_length):
+            import os
+            import shutil
+            from pathlib import Path
+            import traceback
+            
+            def train_model(custom_model, version, language, train_csv, eval_csv, num_epochs, batch_size, grad_acumm, output_path, max_audio_length):
                 clear_gpu_cache()
-
+            
                 run_dir = Path(output_path) / "run"
-
-                # # Remove train dir
+            
+                # Remove train dir
                 if run_dir.exists():
-                    os.remove(run_dir)
+                    shutil.rmtree(run_dir)
                 
                 # Check if the dataset language matches the language you specified 
                 lang_file_path = Path(output_path) / "dataset" / "lang.txt"
-
+            
                 # Check if lang.txt already exists and contains a different language
                 current_language = None
                 if lang_file_path.exists():
@@ -377,34 +382,27 @@ if __name__ == "__main__":
                 try:
                     # convert seconds to waveform frames
                     max_audio_length = int(max_audio_length * 22050)
-                    speaker_xtts_path,config_path, original_xtts_checkpoint, vocab_file, exp_path, speaker_wav = train_gpt(custom_model,version,language, num_epochs, batch_size, grad_acumm, train_csv, eval_csv, output_path=output_path, max_audio_length=max_audio_length)
+                    speaker_xtts_path, config_path, original_xtts_checkpoint, vocab_file, exp_path, speaker_wav = train_gpt(custom_model, version, language, num_epochs, batch_size, grad_acumm, train_csv, eval_csv, output_path=output_path, max_audio_length=max_audio_length)
                 except:
                     traceback.print_exc()
                     error = traceback.format_exc()
-                    return f"The training was interrupted due an error !! Please check the console to check the full error message! \n Error summary: {error}", "", "", "", ""
-
-                # copy original files to avoid parameters changes issues
-                # os.system(f"cp {config_path} {exp_path}")
-                # os.system(f"cp {vocab_file} {exp_path}")
-                
+                    return f"The training was interrupted due to an error !! Please check the console to check the full error message! \n Error summary: {error}", "", "", "", ""
+            
                 ready_dir = Path(output_path) / "ready"
-
+            
                 ft_xtts_checkpoint = os.path.join(exp_path, "best_model.pth")
-
+            
                 shutil.copy(ft_xtts_checkpoint, ready_dir / "unoptimize_model.pth")
-                # os.remove(ft_xtts_checkpoint)
-
+            
                 ft_xtts_checkpoint = os.path.join(ready_dir, "unoptimize_model.pth")
-
-                # Reference
+            
                 # Move reference audio to output folder and rename it
                 speaker_reference_path = Path(speaker_wav)
                 speaker_reference_new_path = ready_dir / "reference.wav"
                 shutil.copy(speaker_reference_path, speaker_reference_new_path)
-
+            
                 print("Model training done!")
-                # clear_gpu_cache()
-                return "Model training done!", config_path, vocab_file, ft_xtts_checkpoint,speaker_xtts_path, speaker_reference_new_path
+                return "Model training done!", config_path, vocab_file, ft_xtts_checkpoint, speaker_xtts_path, speaker_reference_new_path
 
             def optimize_model(out_path, clear_train_data):
                 # print(out_path)
