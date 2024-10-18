@@ -51,6 +51,9 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 
 ![image](https://github.com/daswer123/xtts-finetune-webui/assets/22278673/aa05bcd4-8642-4de4-8f2f-bc0f5571af63)
 
+## Google colab
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DrewThomasson/xtts-finetune-webui/blob/main/notebook/xtts_finetune_webui.ipynb)
+
 ## Install
 
 1. Make sure you have `Cuda` installed
