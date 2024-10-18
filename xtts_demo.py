@@ -135,6 +135,12 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
+        "--share",
+        action="store_true",
+        default=False,
+        help="Enable sharing of the Gradio interface via public link.",
+    )
+    parser.add_argument(
         "--port",
         type=int,
         help="Port to run the gradio demo. Default: 5003",
@@ -683,7 +689,7 @@ if __name__ == "__main__":
             )
 
     demo.launch(
-        share=False,
+        share=args.share,
         debug=False,
         server_port=args.port,
         # inweb=True,
