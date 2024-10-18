@@ -70,4 +70,9 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 1. Run `bash install.sh`
 2. To start the server start `start.sh`
 3. Go to the local address `127.0.0.1:5003`
+
+### On Apple Silicon Mac (python 3.10 env)
+1. Run `pip install --no-deps -r apple_silicon_requirements.txt`
+2. To start the server `python xtts_demo.py`
+3. Go to the local address `127.0.0.1:5003`
 ~                                            
