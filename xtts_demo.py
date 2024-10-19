@@ -41,6 +41,24 @@ def clear_gpu_cache():
         torch.cuda.empty_cache()
 
 XTTS_MODEL = None
+
+def create_zip(folder_path, zip_name):
+    zip_path = os.path.join(tempfile.gettempdir(), f"{zip_name}.zip")
+    shutil.make_archive(zip_path.replace('.zip', ''), 'zip', folder_path)
+    return zip_path
+
+def get_model_zip(out_path):
+    ready_folder = os.path.join(out_path, "ready")
+    if os.path.exists(ready_folder):
+        return create_zip(ready_folder, "optimized_model")
+    return None
+
+def get_dataset_zip(out_path):
+    dataset_folder = os.path.join(out_path, "dataset")
+    if os.path.exists(dataset_folder):
+        return create_zip(dataset_folder, "dataset")
+    return None
+
 def load_model(xtts_checkpoint, xtts_config, xtts_vocab,xtts_speaker):
     global XTTS_MODEL
     clear_gpu_cache()
@@ -592,6 +610,14 @@ if __name__ == "__main__":
                             value=False,
                         )
                     tts_btn = gr.Button(value="Step 4 - Inference")
+                    
+                    model_download_btn = gr.Button("Step 5 - Download Optimized Model ZIP")
+                    dataset_download_btn = gr.Button("Step 5 - Download Dataset ZIP")
+                
+                    model_zip_file = gr.File(label="Download Optimized Model", interactive=False)
+                    dataset_zip_file = gr.File(label="Download Dataset", interactive=False)
+
+
 
                 with gr.Column() as col3:
                     progress_gen = gr.Label(
@@ -692,6 +718,18 @@ if __name__ == "__main__":
                     version
                     ],
                 outputs=[progress_load,xtts_checkpoint,xtts_config,xtts_vocab,xtts_speaker,speaker_reference_audio],
+            )
+             
+            model_download_btn.click(
+                fn=get_model_zip,
+                inputs=[out_path],
+                outputs=[model_zip_file]
+            )
+            
+            dataset_download_btn.click(
+                fn=get_dataset_zip,
+                inputs=[out_path],
+                outputs=[dataset_zip_file]
             )
 
     demo.launch(
