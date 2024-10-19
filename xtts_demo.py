@@ -135,6 +135,12 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
+        "--audio_folder_path",
+        type=str,
+        help="Path to the folder with audio files (optional)",
+        default="",
+    )
+    parser.add_argument(
         "--share",
         action="store_true",
         default=False,
@@ -198,7 +204,7 @@ if __name__ == "__main__":
             
             audio_folder_path = gr.Textbox(
                 label="Path to the folder with audio files (optional):",
-                value="",
+                value=args.audio_folder_path,
             )
 
             whisper_model = gr.Dropdown(
