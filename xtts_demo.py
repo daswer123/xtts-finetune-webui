@@ -59,12 +59,13 @@ def load_model(xtts_checkpoint, xtts_config, xtts_vocab,xtts_speaker):
 
 def run_tts(lang, tts_text, speaker_audio_file, temperature, length_penalty,repetition_penalty,top_k,top_p,sentence_split,use_config):
     if XTTS_MODEL is None or not speaker_audio_file:
-        return "You need to run the previous step to load the model !!", None, None
+        yield "You need to run the previous step to load the model !!", None, None, None
+        return
 
     gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(audio_path=speaker_audio_file, gpt_cond_len=XTTS_MODEL.config.gpt_cond_len, max_ref_length=XTTS_MODEL.config.max_ref_len, sound_norm_refs=XTTS_MODEL.config.sound_norm_refs)
     
     if use_config:
-        out = XTTS_MODEL.inference(
+        generator = XTTS_MODEL.inference_stream(
             text=tts_text,
             language=lang,
             gpt_cond_latent=gpt_cond_latent,
@@ -77,7 +78,7 @@ def run_tts(lang, tts_text, speaker_audio_file, temperature, length_penalty,repe
             enable_text_splitting = True
         )
     else:
-        out = XTTS_MODEL.inference(
+        generator = XTTS_MODEL.inference_stream(
             text=tts_text,
             language=lang,
             gpt_cond_latent=gpt_cond_latent,
@@ -90,13 +91,24 @@ def run_tts(lang, tts_text, speaker_audio_file, temperature, length_penalty,repe
             enable_text_splitting = sentence_split
         )
 
+    fs = 24000
+    duration_in_seconds = 0.1  # Duration of the silent audio chunk
+    silent_audio = np.zeros(int(fs * duration_in_seconds), dtype=np.float32)
+    yield "Starting..", (fs, silent_audio), None, speaker_audio_file
+    
+    wavs = []
+    for output in generator:
+        wav = output.cpu()
+        wavs.append(wav)
+        yield "Generating..", (fs, torch.cat((wav,), dim=0).numpy()), None, speaker_audio_file
+
+    out_wav = torch.cat(wavs, dim=0).numpy()
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as fp:
-        out["wav"] = torch.tensor(out["wav"]).unsqueeze(0)
+        out_wav = torch.tensor(out_wav).unsqueeze(0)
         out_path = fp.name
-        torchaudio.save(out_path, out["wav"], 24000)
+        torchaudio.save(out_path, out_wav, fs)
 
-    return "Speech generated !", out_path, speaker_audio_file
-
+    yield "Finished!", None, out_path, speaker_audio_file
 
 def load_params_tts(out_path,version):
     
@@ -591,6 +603,7 @@ if __name__ == "__main__":
                     progress_gen = gr.Label(
                         label="Progress:"
                     )
+                    tts_audio_stream = gr.Audio(label="Live Audio Stream.", streaming=True)
                     tts_output_audio = gr.Audio(label="Generated Audio.")
                     reference_audio = gr.Audio(label="Reference audio used.")
 
@@ -676,7 +689,7 @@ if __name__ == "__main__":
                     sentence_split,
                     use_config
                 ],
-                outputs=[progress_gen, tts_output_audio,reference_audio],
+                outputs=[progress_gen, tts_audio_stream, tts_output_audio, reference_audio],
             )
 
             load_params_tts_btn.click(
