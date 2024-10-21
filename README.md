@@ -54,6 +54,9 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 ## Google colab
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DrewThomasson/xtts-finetune-webui/blob/main/notebook/xtts_finetune_webui.ipynb)
 
+## [🤗 Hugginface Space(Duplicate for yourself to give it a GPU)](https://huggingface.co/spaces/drewThomasson/xtts-finetune-webui-gpu)
+
+
 ## Install
 
 1. Make sure you have `Cuda` installed
