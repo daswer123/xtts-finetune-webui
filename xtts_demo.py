@@ -4,7 +4,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-import os
 import shutil
 import glob
 
@@ -25,6 +24,21 @@ from TTS.tts.models.xtts import Xtts
 
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
+
+import requests
+
+def download_file(url, destination):
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"Downloaded file to {destination}")
+        return destination
+    except Exception as e:
+        print(f"Failed to download the file: {e}")
+        return None
 
 # Clear logs
 def remove_log_file(file_path):
@@ -388,6 +402,13 @@ if __name__ == "__main__":
             
             def train_model(custom_model, version, language, train_csv, eval_csv, num_epochs, batch_size, grad_acumm, output_path, max_audio_length):
                 clear_gpu_cache()
+          
+                # Check if `custom_model` is a URL and download it if true.
+                if custom_model.startswith("http"):
+                    print("Downloading custom model from URL...")
+                    custom_model = download_file(custom_model, "custom_model.pth")
+                    if not custom_model:
+                        return "Failed to download the custom model.", "", "", "", ""
             
                 run_dir = Path(output_path) / "run"
             
