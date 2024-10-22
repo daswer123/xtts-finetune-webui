@@ -56,7 +56,7 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 
 ## 🐳 Run in Docker 
 ```docker
-docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 athomasson2/ebook2audiobookxtts:huggingface python app.py
+docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 athomasson2/fine_tune_xtts:huggingface python app.py
 ```
 
 
