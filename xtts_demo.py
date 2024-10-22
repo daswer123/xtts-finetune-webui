@@ -4,7 +4,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-import os
 import shutil
 import glob
 
@@ -26,6 +25,21 @@ from TTS.tts.models.xtts import Xtts
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
+import requests
+
+def download_file(url, destination):
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"Downloaded file to {destination}")
+        return destination
+    except Exception as e:
+        print(f"Failed to download the file: {e}")
+        return None
+
 # Clear logs
 def remove_log_file(file_path):
      log_file = Path(file_path)
@@ -41,6 +55,24 @@ def clear_gpu_cache():
         torch.cuda.empty_cache()
 
 XTTS_MODEL = None
+
+def create_zip(folder_path, zip_name):
+    zip_path = os.path.join(tempfile.gettempdir(), f"{zip_name}.zip")
+    shutil.make_archive(zip_path.replace('.zip', ''), 'zip', folder_path)
+    return zip_path
+
+def get_model_zip(out_path):
+    ready_folder = os.path.join(out_path, "ready")
+    if os.path.exists(ready_folder):
+        return create_zip(ready_folder, "optimized_model")
+    return None
+
+def get_dataset_zip(out_path):
+    dataset_folder = os.path.join(out_path, "dataset")
+    if os.path.exists(dataset_folder):
+        return create_zip(dataset_folder, "dataset")
+    return None
+
 def load_model(xtts_checkpoint, xtts_config, xtts_vocab,xtts_speaker):
     global XTTS_MODEL
     clear_gpu_cache()
@@ -135,6 +167,12 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
+        "--audio_folder_path",
+        type=str,
+        help="Path to the folder with audio files (optional)",
+        default="",
+    )
+    parser.add_argument(
         "--share",
         action="store_true",
         default=False,
@@ -198,7 +236,7 @@ if __name__ == "__main__":
             
             audio_folder_path = gr.Textbox(
                 label="Path to the folder with audio files (optional):",
-                value="",
+                value=args.audio_folder_path,
             )
 
             whisper_model = gr.Dropdown(
@@ -364,6 +402,13 @@ if __name__ == "__main__":
             
             def train_model(custom_model, version, language, train_csv, eval_csv, num_epochs, batch_size, grad_acumm, output_path, max_audio_length):
                 clear_gpu_cache()
+          
+                # Check if `custom_model` is a URL and download it if true.
+                if custom_model.startswith("http"):
+                    print("Downloading custom model from URL...")
+                    custom_model = download_file(custom_model, "custom_model.pth")
+                    if not custom_model:
+                        return "Failed to download the custom model.", "", "", "", ""
             
                 run_dir = Path(output_path) / "run"
             
@@ -586,6 +631,14 @@ if __name__ == "__main__":
                             value=False,
                         )
                     tts_btn = gr.Button(value="Step 4 - Inference")
+                    
+                    model_download_btn = gr.Button("Step 5 - Download Optimized Model ZIP")
+                    dataset_download_btn = gr.Button("Step 5 - Download Dataset ZIP")
+                
+                    model_zip_file = gr.File(label="Download Optimized Model", interactive=False)
+                    dataset_zip_file = gr.File(label="Download Dataset", interactive=False)
+
+
 
                 with gr.Column() as col3:
                     progress_gen = gr.Label(
@@ -686,6 +739,18 @@ if __name__ == "__main__":
                     version
                     ],
                 outputs=[progress_load,xtts_checkpoint,xtts_config,xtts_vocab,xtts_speaker,speaker_reference_audio],
+            )
+             
+            model_download_btn.click(
+                fn=get_model_zip,
+                inputs=[out_path],
+                outputs=[model_zip_file]
+            )
+            
+            dataset_download_btn.click(
+                fn=get_dataset_zip,
+                inputs=[out_path],
+                outputs=[dataset_zip_file]
             )
 
     demo.launch(
