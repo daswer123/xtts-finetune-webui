@@ -22,9 +22,6 @@ from faster_whisper import WhisperModel
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
-from TTS.tts.configs.xtts_config import XttsConfig
-from TTS.tts.models.xtts import Xtts
-
 import requests
 
 def download_file(url, destination):
