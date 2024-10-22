@@ -164,6 +164,12 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
+        "--whisper_model",
+        type=str,
+        help="Name of the whisper model selected by default (Optional) Choices are: ['large-v3','large-v2', 'large', 'medium', 'small']   Default Value: 'large-v3'",
+        default="large-v3",
+    )
+    parser.add_argument(
         "--audio_folder_path",
         type=str,
         help="Path to the folder with audio files (optional)",
@@ -238,7 +244,7 @@ if __name__ == "__main__":
 
             whisper_model = gr.Dropdown(
                 label="Whisper Model",
-                value="large-v3",
+                value=args.whisper_model,
                 choices=[
                     "large-v3",
                     "large-v2",
