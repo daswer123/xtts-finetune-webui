@@ -54,7 +54,11 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 ## Google colab
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DrewThomasson/xtts-finetune-webui/blob/main/notebook/xtts_finetune_webui.ipynb)
 
-## [🤗 Hugginface Space(Duplicate for yourself to give it a GPU)](https://huggingface.co/spaces/drewThomasson/xtts-finetune-webui-gpu)
+## 🐳 Run in Docker 
+```docker
+docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 athomasson2/ebook2audiobookxtts:huggingface python app.py
+```
+
 
 
 ## Install
