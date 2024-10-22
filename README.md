@@ -54,6 +54,13 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 ## Google colab
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DrewThomasson/xtts-finetune-webui/blob/main/notebook/xtts_finetune_webui.ipynb)
 
+## 🐳 Run in Docker 
+```docker
+docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 athomasson2/fine_tune_xtts:huggingface python app.py
+```
+
+
+
 ## Install
 
 1. Make sure you have `Cuda` installed
