@@ -22,9 +22,6 @@ from faster_whisper import WhisperModel
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
-from TTS.tts.configs.xtts_config import XttsConfig
-from TTS.tts.models.xtts import Xtts
-
 import requests
 
 def download_file(url, destination):
@@ -218,7 +215,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with gr.Blocks() as demo:
+    with gr.Blocks(title=os.environ.get("APP_NAME", "Gradio")) as demo:
         with gr.Tab("1 - Data processing"):
             out_path = gr.Textbox(
                 label="Output path (where data and checkpoints will be saved):",
