@@ -58,8 +58,13 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 ```docker
 docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 athomasson2/fine_tune_xtts:huggingface python app.py
 ```
+## Run Headless
 
+```bash
+python headlessXttsTrain.py --input_audio speaker.wav --lang en --epochs 10 # Example with parameters
 
+python headlessXttsTrain.py --help # See parameters
+```
 
 ## Install
 
