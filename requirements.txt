@@ -1,7 +1,15 @@
 faster_whisper==1.0.3
-gradio==5.1.0
+gradio==4.44.1
 spacy==3.7.5
 coqui-tts[languages] == 0.24.2
+cutlet==0.5.0
+fugashi[unidic-lite]==1.4.0
+fastapi==0.103.1
+pydantic==2.3.0
+torch==2.1.2
+torchvision==0.16.2
+torchaudio==2.1.2
 
-cutlet
-fugashi[unidic-lite]
+
+
+
