@@ -51,8 +51,9 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 
 ![image](https://github.com/daswer123/xtts-finetune-webui/assets/22278673/aa05bcd4-8642-4de4-8f2f-bc0f5571af63)
 
-## Google colab
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DrewThomasson/xtts-finetune-webui/blob/main/notebook/xtts_finetune_webui.ipynb)
+## Run Remotly
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DrewThomasson/xtts-finetune-webui/blob/main/notebook/xtts_finetune_webui.ipynb) [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Spaces-yellow?style=flat&logo=huggingface)](https://huggingface.co/spaces/drewThomasson/xtts-finetune-webui-gpu)
+
 
 ## 🐳 Run in Docker 
 ```docker
