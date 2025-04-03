@@ -87,12 +87,12 @@ python headlessXttsTrain.py --help # See parameters
 3. Go to the local address `127.0.0.1:5003`
 
 ### On Apple Silicon Mac (python 3.10 env)
-1. Run `pip install --no-deps -r apple_silicon_requirements.txt`
+1. ``` pip install --no-deps -r apple_silicon_requirements.txt ```
 2. To start the server `python xtts_demo.py`
 3. Go to the local address `127.0.0.1:5003`
 
 ### On Manjaro x86 (python 3.11.11 env)
-1. Run `pip install --no-deps -r ManjaroX86Python3.11.11_requirements.txt`
+1. ``` pip install --no-deps -r ManjaroX86Python3.11.11_requirements.txt ```
 2. To start the server `python xtts_demo.py`
 3. Go to the local address `127.0.0.1:5003`
 
