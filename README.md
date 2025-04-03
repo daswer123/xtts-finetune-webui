@@ -59,8 +59,13 @@ If you are looking for an option for normal XTTS use look here [https://github.c
 ```docker
 docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 athomasson2/fine_tune_xtts:huggingface python app.py
 ```
+## Run Headless
 
+```bash
+python headlessXttsTrain.py --input_audio speaker.wav --lang en --epochs 10 # Example with parameters
 
+python headlessXttsTrain.py --help # See parameters
+```
 
 ## Install
 
@@ -83,7 +88,13 @@ docker run -it --gpus all --pull always -p 7860:7860 --platform=linux/amd64 atho
 3. Go to the local address `127.0.0.1:5003`
 
 ### On Apple Silicon Mac (python 3.10 env)
-1. Run `pip install --no-deps -r apple_silicon_requirements.txt`
+1. ``` pip install --no-deps -r apple_silicon_requirements.txt ```
 2. To start the server `python xtts_demo.py`
 3. Go to the local address `127.0.0.1:5003`
+
+### On Manjaro x86 (python 3.11.11 env)
+1. ``` pip install --no-deps -r ManjaroX86Python3.11.11_requirements.txt ```
+2. To start the server `python xtts_demo.py`
+3. Go to the local address `127.0.0.1:5003`
+
 ~                                            
